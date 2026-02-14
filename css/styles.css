@@ -3755,7 +3755,11 @@ body {
         margin: 10px; 
         max-height: 95vh; 
     }
-    /* Modales de tienda: estilo tipo Santuario — caja centrada, bordes redondeados (sí pueden tapar el header) */
+    /* Modales de tiendas de ciudades (jugador): todos centrados igual en móvil */
+    #player-city-shops-modal.modal-overlay.active,
+    #player-habitantes-modal.modal-overlay.active,
+    #player-santuario-modal.modal-overlay.active,
+    #player-banco-modal.modal-overlay.active,
     #player-artesanias-modal.modal-overlay.active,
     #player-emporio-modal.modal-overlay.active,
     #player-forge-modal.modal-overlay.active,
@@ -3766,11 +3770,15 @@ body {
     #player-batalla-modal.modal-overlay.active,
     #player-shop-catalog-modal.modal-overlay.active {
         padding: 12px;
-        align-items: flex-start;
+        align-items: center;
         justify-content: center;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
     }
+    #player-city-shops-modal .modal,
+    #player-habitantes-modal .modal,
+    #player-santuario-modal .modal,
+    #player-banco-modal .modal,
     #player-artesanias-modal .modal,
     #player-emporio-modal .modal,
     #player-forge-modal .modal,
@@ -3781,9 +3789,9 @@ body {
     #player-batalla-modal .modal,
     #player-shop-catalog-modal .modal {
         width: 100%;
-        max-width: 500px;
+        max-width: min(500px, calc(100vw - 24px));
         max-height: calc(100vh - 24px);
-        margin: 0 auto;
+        margin: auto;
         border-radius: 8px;
         border: 1px solid #8b5a2b;
         display: flex;
@@ -3791,6 +3799,10 @@ body {
         overflow: hidden;
         flex-shrink: 0;
     }
+    #player-city-shops-modal .modal-body,
+    #player-habitantes-modal .modal-body,
+    #player-santuario-modal .modal-body,
+    #player-banco-modal .modal-body,
     #player-artesanias-modal .modal-body,
     #player-emporio-modal .modal-body,
     #player-forge-modal .modal-body,
