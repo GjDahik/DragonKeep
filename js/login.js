@@ -35,8 +35,9 @@ function loadLoginPlayers() {
         sel.innerHTML = '<option value="">— Error: db no disponible —</option>';
         return;
     }
-    db.collection('players').limit(200).get()
-        .then(function (snap) {
+    var doQuery = function () {
+        db.collection('players').limit(200).get()
+            .then(function (snap) {
             var list = snap.docs.map(function (doc) {
                 var d = doc.data();
                 return { id: doc.id, nombre: d.nombre, visible: d.visible };
@@ -50,11 +51,20 @@ function loadLoginPlayers() {
                 opt.dataset.id = p.id;
                 sel.appendChild(opt);
             });
-        })
-        .catch(function (e) {
+            })
+            .catch(function (e) {
+                sel.innerHTML = '<option value="">— Error al cargar —</option>';
+                console.error(e);
+            });
+    };
+    if (typeof ensureAuthUid === 'function') {
+        ensureAuthUid().then(doQuery).catch(function (e) {
             sel.innerHTML = '<option value="">— Error al cargar —</option>';
             console.error(e);
         });
+    } else {
+        doQuery();
+    }
 }
 
 function handleLogin() {

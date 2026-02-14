@@ -325,8 +325,10 @@ function toggleLoginFields() {
 
 async function loadLoginPlayers() {
     const sel = document.getElementById('login-player-select');
+    if (!sel) return;
     sel.innerHTML = '<option value="">— Cargando… —</option>';
     try {
+        if (typeof ensureAuthUid === 'function') await ensureAuthUid();
         const snap = await db.collection('players').limit(200).get();
         const list = snap.docs
             .map(doc => ({ id: doc.id, ...doc.data() }))
