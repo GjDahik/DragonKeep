@@ -2240,12 +2240,7 @@ function renderPlayerView(data) {
             const idxStrEsc = (idxStr || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
             const actionsCell = `
                 <div class="inv-actions-wrap">
-                    <button type="button" class="btn btn-small btn-secondary inv-actions-menu-btn" onclick="toggleInvActionsMenu(event, this)" data-first-index="${idxUse}" data-count="${g.count}" data-indices-str="${idxStrEsc}" title="Acciones">⋮</button>
-                    <div class="inv-actions-dropdown">
-                        <button type="button" onclick="invActionUse(this)">✨ Utilizar</button>
-                        <button type="button" onclick="invActionSell(this)">💰 Vender</button>
-                        <button type="button" onclick="invActionTransfer(this)">📤 Transferir</button>
-                    </div>
+                    <button type="button" class="btn btn-small btn-secondary inv-actions-menu-btn" onclick="openPlayerInventoryActionsModal(event, this)" data-first-index="${idxUse}" data-count="${g.count}" data-indices-str="${idxStrEsc}" title="Acciones">⋮</button>
                 </div>`;
             return `<tr class="player-inventory-row">
                 <td><span class="player-inventory-item-name" style="color:#d4c4a8; font-weight:600; cursor:pointer; text-decoration:underline; text-underline-offset:3px;" onclick="openPlayerInventoryItemDetail(${idxUse}, ${g.count})" role="button" tabindex="0" title="Ver detalle del ítem">${esc(it.name || 'Item')}</span></td>
@@ -2267,12 +2262,7 @@ function renderPlayerView(data) {
             const idxStrEscCard = (idxStr || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
             const actionsCard = `
                 <div class="inv-actions-wrap">
-                    <button type="button" class="btn btn-small btn-secondary inv-actions-menu-btn" onclick="toggleInvActionsMenu(event, this)" data-first-index="${idxUse}" data-count="${g.count}" data-indices-str="${idxStrEscCard}" title="Acciones">⋮</button>
-                    <div class="inv-actions-dropdown">
-                        <button type="button" onclick="invActionUse(this)">✨ Utilizar</button>
-                        <button type="button" onclick="invActionSell(this)">💰 Vender</button>
-                        <button type="button" onclick="invActionTransfer(this)">📤 Transferir</button>
-                    </div>
+                    <button type="button" class="btn btn-small btn-secondary inv-actions-menu-btn" onclick="openPlayerInventoryActionsModal(event, this)" data-first-index="${idxUse}" data-count="${g.count}" data-indices-str="${idxStrEscCard}" title="Acciones">⋮</button>
                 </div>`;
             return `<div class="inventory-card">
                 <div class="inventory-card-header">
@@ -2296,6 +2286,8 @@ function renderPlayerView(data) {
 
 var _pendingUseAction = null;
 
+var _pendingInvActions = null;
+
 function closeAllInvActionsMenus() {
     document.querySelectorAll('.inv-actions-dropdown.is-open').forEach(function (el) { el.classList.remove('is-open'); });
 }
@@ -2309,6 +2301,25 @@ function toggleInvActionsMenu(event, btn) {
     if (!isOpen) dropdown.classList.add('is-open');
 }
 
+function openPlayerInventoryActionsModal(event, btn) {
+    if (event) event.stopPropagation();
+    closeAllInvActionsMenus();
+    var firstIndex = parseInt(btn.getAttribute('data-first-index'), 10);
+    var count = parseInt(btn.getAttribute('data-count'), 10) || 1;
+    var indicesStr = (btn.getAttribute('data-indices-str') || '').replace(/&#39;/g, "'").replace(/&quot;/g, '"');
+    var itemName = '—';
+    if (lastPlayerViewData && lastPlayerViewData.inventario) {
+        var item = lastPlayerViewData.inventario[firstIndex];
+        if (item) itemName = item.name || 'Item';
+    }
+    _pendingInvActions = { firstIndex: firstIndex, count: count, indicesStr: indicesStr };
+    var titleEl = document.getElementById('player-inventory-actions-title');
+    var nameEl = document.getElementById('player-inventory-actions-item-name');
+    if (titleEl) titleEl.textContent = 'Acciones del ítem';
+    if (nameEl) nameEl.innerHTML = '<strong>' + String(itemName).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</strong>';
+    openModal('player-inventory-actions-modal');
+}
+
 function invActionGetMenuBtn(actionBtn) {
     var wrap = actionBtn.closest('.inv-actions-wrap');
     return wrap ? wrap.querySelector('.inv-actions-menu-btn') : null;
@@ -2319,9 +2330,8 @@ function invActionUse(actionBtn) {
     if (!menuBtn) return;
     closeAllInvActionsMenus();
     var firstIndex = parseInt(menuBtn.getAttribute('data-first-index'), 10);
-    var count = parseInt(menuBtn.getAttribute('data-count'), 10) || 1;
     var indicesStr = (menuBtn.getAttribute('data-indices-str') || '').replace(/&#39;/g, "'").replace(/&quot;/g, '"');
-    if (count > 1 && indicesStr) {
+    if (indicesStr) {
         openUseItemConfirmStack(indicesStr);
     } else {
         openUseItemConfirm(firstIndex);
@@ -2350,6 +2360,38 @@ function invActionTransfer(actionBtn) {
     var count = parseInt(menuBtn.getAttribute('data-count'), 10) || 1;
     var indicesStr = (menuBtn.getAttribute('data-indices-str') || '').replace(/&#39;/g, "'").replace(/&quot;/g, '"');
     openTransferItemModal(firstIndex, count, indicesStr);
+}
+
+function invActionUseFromModal() {
+    if (!_pendingInvActions) return;
+    closeModal('player-inventory-actions-modal');
+    var a = _pendingInvActions;
+    if (a.indicesStr) {
+        openUseItemConfirmStack(a.indicesStr);
+    } else {
+        openUseItemConfirm(a.firstIndex);
+    }
+    _pendingInvActions = null;
+}
+
+function invActionSellFromModal() {
+    if (!_pendingInvActions) return;
+    closeModal('player-inventory-actions-modal');
+    var a = _pendingInvActions;
+    if (a.count > 1 && a.indicesStr) {
+        openSellConfirmStack(a.indicesStr);
+    } else {
+        openSellConfirm(a.firstIndex);
+    }
+    _pendingInvActions = null;
+}
+
+function invActionTransferFromModal() {
+    if (!_pendingInvActions) return;
+    closeModal('player-inventory-actions-modal');
+    var a = _pendingInvActions;
+    openTransferItemModal(a.firstIndex, a.count, a.indicesStr);
+    _pendingInvActions = null;
 }
 
 function openPlayerInventoryItemDetail(inventoryIndex, count) {
@@ -2434,10 +2476,10 @@ function openUseItemConfirmStack(indicesStr) {
         qtyInput.min = 1;
         qtyInput.max = totalAvailable;
         qtyInput.value = 1;
-        qtyInput.style.display = 'block';
+        qtyInput.style.display = totalAvailable <= 1 ? 'none' : '';
     }
     var qtyRow = document.getElementById('player-use-qty-row');
-    if (qtyRow) qtyRow.style.display = 'block';
+    if (qtyRow) qtyRow.style.display = totalAvailable <= 1 ? 'none' : 'block';
     _pendingUseAction = { type: 'stack', indicesStr: indicesStr };
     openModal('player-use-item-confirm-modal');
 }
@@ -2457,9 +2499,13 @@ function doConfirmedUseItem() {
         runAutomationRulesForPlayerUse(user.id, item, user.nombre || 'Jugador');
     }
     var qtyInput = document.getElementById('player-use-qty');
-    var qty = (qtyInput && qtyInput.value !== '') ? Math.max(1, parseInt(qtyInput.value, 10) || 1) : 1;
-    var maxVal = qtyInput ? (parseInt(qtyInput.getAttribute('max'), 10) || qty) : qty;
-    qty = Math.min(qty, maxVal);
+    var requestedQty = (qtyInput && qtyInput.value !== '') ? Math.max(1, parseInt(qtyInput.value, 10) || 1) : 1;
+    var maxVal = qtyInput ? (parseInt(qtyInput.getAttribute('max'), 10) || requestedQty) : requestedQty;
+    if (requestedQty > maxVal) {
+        showToast('No tienes suficientes unidades. Máximo: ' + maxVal, true);
+        return;
+    }
+    var qty = requestedQty;
     _pendingUseAction = null;
     closeModal('player-use-item-confirm-modal');
     if (a.type === 'single') {
@@ -2590,8 +2636,7 @@ async function playerUseItemStack(indicesStr, qtyOrButton) {
         }
         indices = indices.slice(0, qty);
     } else if (typeof qtyOrButton === 'number' && qtyOrButton > 0) {
-        qty = Math.min(qtyOrButton, indices.length);
-        indices = indices.slice(0, qty);
+        qty = qtyOrButton;
     }
     if (indices.length === 0) return;
     try {

@@ -411,6 +411,22 @@
         </div>
     </div>
 
+    <!-- Modal Acciones del ítem (inventario jugador: Utilizar / Vender / Transferir) -->
+    <div class="modal-overlay" id="player-inventory-actions-modal">
+        <div class="modal player-use-confirm-modal" style="max-width: 360px;">
+            <div class="modal-header player-use-confirm-header">
+                <h3 class="player-use-confirm-title" id="player-inventory-actions-title">Acciones</h3>
+                <button class="modal-close" onclick="closeModal('player-inventory-actions-modal')" aria-label="Cerrar">&times;</button>
+            </div>
+            <div class="modal-body player-use-confirm-body" style="display:flex; flex-direction:column; gap:10px;">
+                <p class="player-use-confirm-message" id="player-inventory-actions-item-name" style="margin-bottom:8px; color:#d4c4a8;">—</p>
+                <button type="button" class="btn player-use-confirm-btn" style="width:100%;" onclick="invActionUseFromModal()">✨ Utilizar</button>
+                <button type="button" class="btn btn-secondary" style="width:100%;" onclick="invActionSellFromModal()">💰 Vender</button>
+                <button type="button" class="btn btn-secondary" style="width:100%;" onclick="invActionTransferFromModal()">📤 Transferir</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal confirmación Usar ítem (inventario jugador) -->
     <div class="modal-overlay" id="player-use-item-confirm-modal">
         <div class="modal player-use-confirm-modal" style="max-width: 420px;">
@@ -1669,7 +1685,7 @@
                         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                             <button class="btn btn-small" onclick="openGiveItemModal()" style="min-width: 120px;">🎁 Dar Item</button>
                             <button class="btn btn-small btn-secondary" onclick="downloadPlayerItemsTemplate()" style="min-width: 140px;">📥 Plantilla Excel</button>
-                            <button class="btn btn-small btn-secondary" onclick="document.getElementById('player-inventory-csv-input').click();" style="min-width: 140px;">📤 Importar CSV</button>
+                            <button class="btn btn-small btn-secondary" onclick="document.getElementById('player-inventory-csv-input').click();" style="min-width: 140px;">📤 Importar CSV o Excel</button>
                             <input type="file" id="player-inventory-csv-input" accept=".csv,.txt,.xlsx,.xls" style="display: none;" onchange="importPlayerItemsCSV(event)">
                         </div>
                     </div>
@@ -1678,7 +1694,7 @@
                 <!-- Instrucciones CSV -->
                 <div style="background: rgba(0,0,0,0.2); border-left: 3px solid #8b5a2b; border-radius: 4px; padding: 12px; margin-bottom: 16px;">
                     <p style="color: #8b7355; font-size: 0.85em; margin: 0; line-height: 1.5;">
-                        <strong style="color: #d4af37;">📋 Formato CSV:</strong> <code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 3px; color: #d4c4a8;">name</code>, <code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 3px; color: #d4c4a8;">price</code>, <code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 3px; color: #d4c4a8;">effect</code>, <code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 3px; color: #d4c4a8;">rarity</code>, <code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 3px; color: #d4c4a8;">quantity</code> (opcional, por defecto 1) 
+                        <strong style="color: #d4af37;">📋 Formato CSV o Excel:</strong> <code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 3px; color: #d4c4a8;">name</code>, <code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 3px; color: #d4c4a8;">price</code>, <code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 3px; color: #d4c4a8;">effect</code>, <code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 3px; color: #d4c4a8;">rarity</code>, <code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 3px; color: #d4c4a8;">quantity</code> (opcional, por defecto 1) 
                         <span style="color: #a89878;">— rarity: común, inusual, rara, legendaria</span>
                     </p>
                 </div>
@@ -1919,8 +1935,8 @@
                 <input type="hidden" id="import-npcs-city-id">
                 <p style="color: #8b7355; margin-bottom: 15px;">Ciudad: <span id="import-npcs-city-name" style="color: #d4af37;"></span></p>
                 <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #4a3c31;">
-                    <h4 style="color: #d4af37; margin-bottom: 10px;">📋 Formato CSV</h4>
-                    <p style="color: #8b7355; margin-bottom: 10px; font-size: 0.9em;">Columnas: nombre, rol, actitud, notas. Actitudes válidas: amigable, neutral, hostil.</p>
+                    <h4 style="color: #d4af37; margin-bottom: 10px;">📋 Formato CSV o Excel</h4>
+                    <p style="color: #8b7355; margin-bottom: 10px; font-size: 0.9em;">Columnas: nombre, rol, actitud, notas. Actitudes válidas: amigable, neutral, hostil. Guarda como CSV o .xlsx.</p>
                     <div style="overflow-x: auto;">
                         <table style="width: 100%; border-collapse: collapse; font-size: 0.85em; background: #0d0d0d; border-radius: 4px;">
                             <thead>
@@ -1982,10 +1998,20 @@
                     </div>
                 </div>
                 
-                <!-- Plantilla CSV (oculta por defecto) -->
+                <!-- Plantilla CSV Pociones (oculta por defecto) -->
                 <div id="csv-template-section" style="display: none; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #4a3c31;">
-                    <h4 style="color: #d4af37; margin-bottom: 10px;">📋 Formato para Excel/Sheets</h4>
-                    <p style="color: #8b7355; margin-bottom: 10px; font-size: 0.9em;">Copia esto en Excel, llena tus items, guarda como CSV o Excel (.xlsx) y usa "Importar"</p>
+                    <h4 style="color: #d4af37; margin-bottom: 10px;">🧪 Plantilla: <strong>Pociones</strong></h4>
+                    <p style="color: #d4c4a8; margin-bottom: 12px; font-size: 0.95em; line-height: 1.4;"><strong>Pasos:</strong> 1) Descarga la plantilla CSV abajo. 2) Rellena tus ítems en Excel o Google Sheets (la primera fila debe ser los nombres de columnas). 3) Guarda como CSV o .xlsx y usa el botón <strong>«Importar»</strong> en esta tienda.</p>
+                    <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 6px; margin-bottom: 12px; border-left: 4px solid #d4af37;">
+                        <p style="color: #d4c4a8; margin: 0 0 6px 0; font-size: 0.9em;"><strong>Requerimientos de columnas</strong></p>
+                        <ul style="color: #8b7355; margin: 0; padding-left: 18px; font-size: 0.9em;">
+                            <li><strong>name</strong> — Nombre del ítem (obligatorio)</li>
+                            <li><strong>price</strong> — Precio en GP, número (obligatorio)</li>
+                            <li><strong>effect</strong> — Descripción del efecto (opcional)</li>
+                            <li><strong>avg</strong> — Valor medio si aplica, ej. "7 HP" (opcional)</li>
+                            <li><strong>rarity</strong> — Solo: común, inusual, rara, legendaria (obligatorio)</li>
+                        </ul>
+                    </div>
                     <button type="button" class="btn btn-small" onclick="downloadCSVTemplate('pociones')" style="margin-bottom: 10px;">📥 Descargar plantilla CSV</button>
                     <div style="overflow-x: auto;">
                         <table style="width: 100%; border-collapse: collapse; font-size: 0.85em; background: #0d0d0d; border-radius: 4px;">
@@ -2037,15 +2063,22 @@
                             </tbody>
                         </table>
                     </div>
-                    <p style="color: #8b7355; margin-top: 10px; font-size: 0.8em;">
-                        <strong>Rarezas válidas:</strong> común, inusual, rara, legendaria
-                    </p>
                 </div>
 
-                <!-- Plantilla CSV Taberna (name, price, effect, type, categoria) -->
+                <!-- Plantilla CSV Taberna -->
                 <div id="csv-template-section-taberna" style="display: none; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #4a3c31;">
-                    <h4 style="color: #d4af37; margin-bottom: 10px;">🍺 Formato CSV para <strong>Taberna</strong></h4>
-                    <p style="color: #8b7355; margin-bottom: 10px; font-size: 0.9em;">Copia esta tabla en Excel, rellena tus bebidas/comidas, guarda como CSV o Excel (.xlsx) y usa "Importar".</p>
+                    <h4 style="color: #d4af37; margin-bottom: 10px;">🍺 Plantilla: <strong>Taberna</strong></h4>
+                    <p style="color: #d4c4a8; margin-bottom: 12px; font-size: 0.95em; line-height: 1.4;"><strong>Pasos:</strong> 1) Descarga la plantilla CSV abajo. 2) Rellena bebidas y comidas en Excel o Google Sheets (primera fila = nombres de columnas). 3) Guarda como CSV o .xlsx y usa <strong>«Importar»</strong> en esta tienda.</p>
+                    <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 6px; margin-bottom: 12px; border-left: 4px solid #d4af37;">
+                        <p style="color: #d4c4a8; margin: 0 0 6px 0; font-size: 0.9em;"><strong>Requerimientos de columnas</strong></p>
+                        <ul style="color: #8b7355; margin: 0; padding-left: 18px; font-size: 0.9em;">
+                            <li><strong>name</strong> — Nombre (obligatorio)</li>
+                            <li><strong>price</strong> — Precio en GP (obligatorio)</li>
+                            <li><strong>effect</strong> — Efecto o descripción (opcional)</li>
+                            <li><strong>type</strong> — Solo: <em>drink</em> o <em>food</em> (obligatorio)</li>
+                            <li><strong>categoria</strong> — Solo: <em>servir</em> (consumir en el local) o <em>llevar</em> (para llevar, con efectos) (obligatorio)</li>
+                        </ul>
+                    </div>
                     <button type="button" class="btn btn-small" onclick="downloadCSVTemplate('taberna')" style="margin-bottom: 10px;">📥 Descargar plantilla CSV</button>
                     <div style="overflow-x: auto;">
                         <table style="width: 100%; border-collapse: collapse; font-size: 0.85em; background: #0d0d0d; border-radius: 4px;">
@@ -2104,15 +2137,23 @@
                             </tbody>
                         </table>
                     </div>
-                    <p style="color: #8b7355; margin-top: 10px; font-size: 0.8em;">
-                        <strong>type:</strong> drink o food. <strong>categoria:</strong> servir (en el local) o llevar (con efectos).
-                    </p>
                 </div>
 
-                <!-- Plantilla CSV Forja / Herrería (name, price, tier, tipo, damage, damageType, ac, desc) -->
+                <!-- Plantilla CSV Forja / Herrería -->
                 <div id="csv-template-section-forja" style="display: none; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #4a3c31;">
-                    <h4 style="color: #d4af37; margin-bottom: 10px;">⚔️ Formato CSV para <strong>Forja / Herrería</strong></h4>
-                    <p style="color: #8b7355; margin-bottom: 10px; font-size: 0.9em;">Copia esta tabla en Excel, rellena armas/armaduras/servicios por nivel, guarda como CSV o Excel (.xlsx) y usa "Importar".</p>
+                    <h4 style="color: #d4af37; margin-bottom: 10px;">⚔️ Plantilla: <strong>Forja / Herrería</strong></h4>
+                    <p style="color: #d4c4a8; margin-bottom: 12px; font-size: 0.95em; line-height: 1.4;"><strong>Pasos:</strong> 1) Descarga la plantilla CSV abajo. 2) Rellena armas, armaduras o servicios en Excel/Sheets (primera fila = nombres de columnas). 3) Guarda como CSV o .xlsx y usa <strong>«Importar»</strong> en esta tienda.</p>
+                    <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 6px; margin-bottom: 12px; border-left: 4px solid #d4af37;">
+                        <p style="color: #d4c4a8; margin: 0 0 6px 0; font-size: 0.9em;"><strong>Requerimientos de columnas</strong></p>
+                        <ul style="color: #8b7355; margin: 0; padding-left: 18px; font-size: 0.9em;">
+                            <li><strong>name</strong>, <strong>price</strong> — Nombre y precio en GP (obligatorios)</li>
+                            <li><strong>tier</strong> — Nivel de personaje para comprar: solo <em>1</em>, <em>6</em>, <em>11</em> o <em>16</em> (equivale a rangos 1-5, 6-10, 11-15, 16-20) (obligatorio)</li>
+                            <li><strong>type</strong> — Solo: <em>arma</em>, <em>armadura</em> o <em>servicio</em> (obligatorio)</li>
+                            <li><strong>damage</strong>, <strong>damageType</strong> — Para armas (ej. 1d6, Perforante). Dejar vacío si no es arma.</li>
+                            <li><strong>ac</strong> — Para armaduras (ej. 12 + DES o 18). Dejar vacío si no es armadura.</li>
+                            <li><strong>desc</strong> (o <strong>effect</strong>) — Descripción que ven los jugadores (recomendado)</li>
+                        </ul>
+                    </div>
                     <button type="button" class="btn btn-small" onclick="downloadCSVTemplate('forja')" style="margin-bottom: 10px;">📥 Descargar plantilla CSV</button>
                     <div style="overflow-x: auto;">
                         <table style="width: 100%; border-collapse: collapse; font-size: 0.85em; background: #0d0d0d; border-radius: 4px;">
@@ -2222,18 +2263,22 @@
                             </tbody>
                         </table>
                     </div>
-                    <p style="color: #8b7355; margin-top: 10px; font-size: 0.8em;">
-                        <strong>tier:</strong> 1, 6, 11 o 16 (Nv. 1-5, 6-10, 11-15, 16-20). <strong>type:</strong> arma, armadura o servicio. Armas: damage + damageType. Armaduras: ac.
-                    </p>
-                    <p style="color: #d4af37; margin-top: 8px; font-size: 0.85em;">
-                        ⚠️ <strong>desc</strong> (o <strong>effect</strong>) es la descripción que verán los jugadores. Si no incluyes esta columna, no se mostrará descripción en la forja.
-                    </p>
+                    </div>
                 </div>
 
-                <!-- Plantilla CSV Artesanías / Arquería (name, price, type, tab, effect, desc) -->
+                <!-- Plantilla CSV Artesanías / Arquería -->
                 <div id="csv-template-section-artesanias" style="display: none; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #4a3c31;">
-                    <h4 style="color: #d4af37; margin-bottom: 10px;">🏹 Formato CSV para <strong>Artesanías / Arquería</strong></h4>
-                    <p style="color: #8b7355; margin-bottom: 10px; font-size: 0.9em;">Copia esta tabla en Excel, rellena flechas/ropa/servicios, guarda como CSV o Excel (.xlsx) y usa "Importar".</p>
+                    <h4 style="color: #d4af37; margin-bottom: 10px;">🏹 Plantilla: <strong>Artesanías / Arquería</strong></h4>
+                    <p style="color: #d4c4a8; margin-bottom: 12px; font-size: 0.95em; line-height: 1.4;"><strong>Pasos:</strong> 1) Descarga la plantilla CSV abajo. 2) Rellena flechas, ropa o servicios en Excel/Sheets (primera fila = nombres de columnas). 3) Guarda como CSV o .xlsx y usa <strong>«Importar»</strong> en esta tienda.</p>
+                    <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 6px; margin-bottom: 12px; border-left: 4px solid #d4af37;">
+                        <p style="color: #d4c4a8; margin: 0 0 6px 0; font-size: 0.9em;"><strong>Requerimientos de columnas</strong></p>
+                        <ul style="color: #8b7355; margin: 0; padding-left: 18px; font-size: 0.9em;">
+                            <li><strong>name</strong>, <strong>price</strong> — Nombre y precio en GP (obligatorios)</li>
+                            <li><strong>type</strong> — Solo: <em>common</em>, <em>magic</em>, <em>elemental</em>, <em>gear</em> o <em>service</em> (obligatorio)</li>
+                            <li><strong>tab</strong> — En qué pestaña aparece: solo <em>flechas</em>, <em>ropa</em> o <em>servicios</em> (obligatorio)</li>
+                            <li><strong>effect</strong>, <strong>desc</strong> — Efecto y descripción (opcionales)</li>
+                        </ul>
+                    </div>
                     <button type="button" class="btn btn-small" onclick="downloadCSVTemplate('artesanias')" style="margin-bottom: 10px;">📥 Descargar plantilla CSV</button>
                     <div style="overflow-x: auto;">
                         <table style="width: 100%; border-collapse: collapse; font-size: 0.85em; background: #0d0d0d; border-radius: 4px;">
@@ -2283,15 +2328,22 @@
                             </tbody>
                         </table>
                     </div>
-                    <p style="color: #8b7355; margin-top: 10px; font-size: 0.8em;">
-                        <strong>type:</strong> common, magic, elemental, gear o service. <strong>tab:</strong> flechas, ropa o servicios (en qué pestaña aparece).
-                    </p>
+                    </div>
                 </div>
 
-                <!-- Plantilla CSV Emporio (name, price, section, effect, rarity) -->
+                <!-- Plantilla CSV Emporio -->
                 <div id="csv-template-section-emporio" style="display: none; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #4a3c31;">
-                    <h4 style="color: #d4af37; margin-bottom: 10px;">🛒 Formato CSV para <strong>Emporio</strong></h4>
-                    <p style="color: #8b7355; margin-bottom: 10px; font-size: 0.9em;">Materiales para hechizos, objetos raros/importados, mapas y otros. Columnas: name, price, section, effect, rarity.</p>
+                    <h4 style="color: #d4af37; margin-bottom: 10px;">🛒 Plantilla: <strong>Emporio</strong></h4>
+                    <p style="color: #d4c4a8; margin-bottom: 12px; font-size: 0.95em; line-height: 1.4;"><strong>Pasos:</strong> 1) Descarga la plantilla CSV abajo. 2) Rellena materiales, objetos raros, mapas u otros ítems en Excel/Sheets (primera fila = nombres de columnas). 3) Guarda como CSV o .xlsx y usa <strong>«Importar»</strong> en esta tienda.</p>
+                    <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 6px; margin-bottom: 12px; border-left: 4px solid #d4af37;">
+                        <p style="color: #d4c4a8; margin: 0 0 6px 0; font-size: 0.9em;"><strong>Requerimientos de columnas</strong></p>
+                        <ul style="color: #8b7355; margin: 0; padding-left: 18px; font-size: 0.9em;">
+                            <li><strong>name</strong>, <strong>price</strong> — Nombre y precio en GP (obligatorios)</li>
+                            <li><strong>section</strong> — Solo: <em>materiales</em>, <em>raros</em>, <em>mapas</em> u <em>otros</em> (obligatorio)</li>
+                            <li><strong>effect</strong> — Descripción del ítem (opcional)</li>
+                            <li><strong>rarity</strong> — Solo: común, inusual, rara, legendaria (obligatorio)</li>
+                        </ul>
+                    </div>
                     <button type="button" class="btn btn-small" onclick="downloadCSVTemplate('emporio')" style="margin-bottom: 10px;">📥 Descargar plantilla CSV</button>
                     <div style="overflow-x: auto;">
                         <table style="width: 100%; border-collapse: collapse; font-size: 0.85em; background: #0d0d0d; border-radius: 4px;">
@@ -2336,15 +2388,24 @@
                             </tbody>
                         </table>
                     </div>
-                    <p style="color: #8b7355; margin-top: 10px; font-size: 0.8em;">
-                        <strong>section:</strong> materiales, raros, mapas u otros. <strong>rarity:</strong> común, inusual, rara, legendaria.
-                    </p>
+                    </div>
                 </div>
 
-                <!-- Plantilla CSV Biblioteca (name, price, section, effect, tiempo, nivel, efLabel) -->
+                <!-- Plantilla CSV Biblioteca -->
                 <div id="csv-template-section-biblioteca" style="display: none; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #4a3c31;">
-                    <h4 style="color: #d4af37; margin-bottom: 10px;">📚 Formato CSV para <strong>Biblioteca</strong></h4>
-                    <p style="color: #8b7355; margin-bottom: 10px; font-size: 0.9em;">Copia esta tabla en Excel, rellena libros por sección, guarda como CSV o Excel (.xlsx) y usa "Importar".</p>
+                    <h4 style="color: #d4af37; margin-bottom: 10px;">📚 Plantilla: <strong>Biblioteca</strong></h4>
+                    <p style="color: #d4c4a8; margin-bottom: 12px; font-size: 0.95em; line-height: 1.4;"><strong>Pasos:</strong> 1) Descarga la plantilla CSV abajo. 2) Rellena libros (magia, fabricación, cocina, etc.) en Excel/Sheets (primera fila = nombres de columnas). 3) Guarda como CSV o .xlsx y usa <strong>«Importar»</strong> en esta tienda.</p>
+                    <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 6px; margin-bottom: 12px; border-left: 4px solid #d4af37;">
+                        <p style="color: #d4c4a8; margin: 0 0 6px 0; font-size: 0.9em;"><strong>Requerimientos de columnas</strong></p>
+                        <ul style="color: #8b7355; margin: 0; padding-left: 18px; font-size: 0.9em;">
+                            <li><strong>name</strong>, <strong>price</strong> — Nombre y precio en GP (obligatorios)</li>
+                            <li><strong>section</strong> — Solo: <em>magia</em>, <em>fabricacion</em>, <em>cocina</em>, <em>trampas</em>, <em>alquimia</em>, <em>mapas</em> o <em>restringida</em> (obligatorio)</li>
+                            <li><strong>effect</strong> — Qué otorga el libro (ej. nombre de conjuro, "Permite fabricar") (obligatorio)</li>
+                            <li><strong>tiempo</strong> — Tiempo de lectura, ej. "3 DL" (opcional)</li>
+                            <li><strong>nivel</strong> — Nivel del contenido si aplica (opcional)</li>
+                            <li><strong>efLabel</strong> — Etiqueta corta, ej. "Conjuro aprendido", "Permite fabricar" (opcional)</li>
+                        </ul>
+                    </div>
                     <button type="button" class="btn btn-small" onclick="downloadCSVTemplate('biblioteca')" style="margin-bottom: 10px;">📥 Descargar plantilla CSV</button>
                     <div style="overflow-x: auto;">
                         <table style="width: 100%; border-collapse: collapse; font-size: 0.85em; background: #0d0d0d; border-radius: 4px;">
@@ -2444,14 +2505,11 @@
                             </tbody>
                         </table>
                     </div>
-                    <p style="color: #8b7355; margin-top: 10px; font-size: 0.8em;">
-                        <strong>section:</strong> magia, fabricacion, cocina, trampas, alquimia, mapas o restringida. tiempo, nivel y efLabel son opcionales.
-                    </p>
                 </div>
 
                 <!-- Sección de importar archivo -->
                 <div id="csv-import-section" style="display: none; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #4a3c31;">
-                    <h4 style="color: #d4af37; margin-bottom: 15px;">📤 Importar Items desde CSV</h4>
+                    <h4 style="color: #d4af37; margin-bottom: 15px;">📤 Importar items desde CSV o Excel</h4>
                     
                     <div style="margin-bottom: 15px;">
                         <button type="button" class="btn btn-secondary" onclick="document.getElementById('csv-file-input').click();" style="width: 100%;">📁 Seleccionar Archivo CSV o Excel</button>

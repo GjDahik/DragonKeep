@@ -339,7 +339,7 @@ function renderPlayerInventory(player) {
             <div style="text-align:center; padding:40px 20px; color:#8b7355;">
                 <div style="font-size:3em; margin-bottom:12px;">🎒</div>
                 <p style="font-size:1.1em; margin-bottom:8px;">El inventario está vacío</p>
-                <p style="font-size:0.9em; color:#6b5a4a;">Usa "Dar Item" o "Importar CSV" para agregar items</p>
+                <p style="font-size:0.9em; color:#6b5a4a;">Usa "Dar Item" o "Importar CSV o Excel" para agregar items</p>
             </div>
         `;
         return;
