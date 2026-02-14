@@ -1,7 +1,0 @@
-name,price,effect,type,categoria
-Cerveza de Barril,2,,drink,servir
-Vino de la Casa,3,,drink,servir
-Elixir de Resistencia,8,+1 a tiradas de Constitución (1h),drink,llevar
-Sopa del Día,4,,food,servir
-Ración de Viaje,5,,food,llevar
-Pan Curativo,12,Cura 1d4+1 PG,food,llevar
