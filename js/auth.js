@@ -4,18 +4,12 @@
 let currentUser = null;
 let userType = null; // 'dm' o 'player'
 
-/** Espera a tener un UID de Firebase Auth (anon). Requerido para que las reglas permitan acceso. */
+/** Devuelve el UID de Firebase Auth si ya hay sesión anónima; si no, rechaza (no llama a signInAnonymously para evitar errores en consola). */
 function ensureAuthUid() {
     var auth = typeof firebase !== 'undefined' && firebase.auth ? firebase.auth() : null;
     if (!auth) return Promise.reject(new Error('Firebase Auth no disponible'));
     if (auth.currentUser && auth.currentUser.uid) return Promise.resolve(auth.currentUser.uid);
-    return new Promise(function (resolve, reject) {
-        var unsub = auth.onAuthStateChanged(function (user) {
-            if (unsub) unsub();
-            if (user && user.uid) resolve(user.uid);
-            else auth.signInAnonymously().then(function () { resolve(auth.currentUser.uid); }).catch(reject);
-        });
-    });
+    return Promise.reject(new Error('No hay sesión Auth'));
 }
 
 // ==================== DM AUTHENTICATION ====================

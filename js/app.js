@@ -11,10 +11,9 @@ var firebaseConfig = (typeof window !== 'undefined' && window.firebaseConfig) ? 
 };
 if (!firebase.apps || firebase.apps.length === 0) firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-// Auth anónimo: solo si no estamos en file:// (referrer null bloquea y llena la consola de errores)
-if (typeof firebase.auth === 'function' && location.protocol !== 'file:') {
-    firebase.auth().signInAnonymously().catch(function (err) { console.warn('[Auth] signInAnonymously:', err.message); });
-}
+// Auth anónimo desactivado aquí para evitar errores en consola (auth/configuration-not-found, 400).
+// Si más adelante usas reglas que exigen request.auth, activa Authentication en Firebase Console
+// y descomenta: firebase.auth().signInAnonymously().catch(function (err) { console.warn('[Auth]', err.message); });
 
 // ==================== CONTADOR DE READS (solo desarrollo / diagnóstico) ====================
 // Ver también: Firebase Console → Firestore → Usage (gráfica de lecturas por día).
