@@ -5,7 +5,7 @@
 
 (function () {
     window.firebaseConfig = {
-        apiKey: "__REPLACE_API_KEY__",
+        apiKey: "AIzaSyB9Rp07Swu2zAP_hMY951XlGFe5xLFHYnU",
         authDomain: "nueva-valdoria.firebaseapp.com",
         projectId: "nueva-valdoria",
         storageBucket: "nueva-valdoria.firebasestorage.app",
