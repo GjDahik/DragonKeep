@@ -1,0 +1,10 @@
+name,price,tier,tipo,damage,damageType,ac,desc
+Espada Corta,50,1,arma,1d6,Perforante,,Arma ligera 1d6 perforante
+Armadura de Cuero,75,1,armadura,,,,12 + DES,Armadura ligera
+Reparación Básica,25,1,servicio,,,,,Restauración de armas y armaduras dañadas
+Espada Larga,150,6,arma,1d8,Cortante,,Arma marcial versátil
+Armadura de Hierro,200,6,armadura,,,,18,Armadura de placas
+Hacha de Batalla,250,6,arma,1d8,Cortante,,Arma marcial a dos manos
+Armadura de Placas,400,11,armadura,,,,18,Armadura pesada de alta calidad
+Espada Rúnica,1200,11,arma,2d6,Radiante,,Arma con runas de poder
+Armadura de Dragón,2000,16,armadura,,,,20,Escamas de dragón forjadas

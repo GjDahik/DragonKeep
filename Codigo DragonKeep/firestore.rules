@@ -1,0 +1,90 @@
+rules_version = '2';
+// Reglas de Firestore para DragonKeep (nueva-valdoria).
+// La app usa autenticación custom (nombre + PIN en dms/players), no Firebase Auth,
+// por lo que no se puede restringir por request.auth.uid. Para uso personal/hobby
+// se permite lectura/escritura; mantén el enlace del dashboard privado.
+// Para producción pública considera Firebase App Check o migrar a Firebase Auth.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // DM: login y creación de cuenta
+    match /dms/{dmId} {
+      allow read, write: if true;
+    }
+
+    // Jugadores: login, CRUD por DM, inventario, banco, Cartas del Destino, Mi Casa
+    match /players/{playerId} {
+      allow read, write: if true;
+    }
+
+    // Ciudades, NPCs, tiendas
+    match /cities/{cityId} {
+      allow read, write: if true;
+      match /playerNotes/{noteId} {
+        allow read, write: if true;
+      }
+    }
+    match /npcs/{npcId} {
+      allow read, write: if true;
+    }
+    match /shops/{shopId} {
+      allow read, write: if true;
+    }
+
+    // Tiendas ambulantes (DM crea/edita; jugador solo lee las activas)
+    match /travelingShops/{shopId} {
+      allow read, write: if true;
+    }
+
+    // Transacciones (compras, hospedaje, retiros)
+    match /transactions/{txId} {
+      allow read, write: if true;
+    }
+
+    // Notificaciones (cartas a personajes)
+    match /notifications/{notifId} {
+      allow read, write: if true;
+    }
+
+    // Reglas de mensajes automáticos
+    match /automation_rules/{ruleId} {
+      allow read, write: if true;
+    }
+
+    // Configuración global (mapa, etc.)
+    match /settings/{docId} {
+      allow read, write: if true;
+    }
+
+    // Misiones: DM crea/edita/visibilidad/completar; jugador acepta/en curso/notas
+    match /missions/{missionId} {
+      allow read, write: if true;
+    }
+
+    // Escucha la leyenda: DM añade/edita/elimina audios; jugador solo lectura
+    match /legend_audio/{trackId} {
+      allow read, write: if true;
+    }
+
+    // Rutas conocidas: DM crea/edita/elimina; jugador solo lectura
+    match /rutas_conocidas/{rutaId} {
+      allow read, write: if true;
+    }
+
+    // Bitácora de viaje: entradas por jugador (ruta, duración, fecha, notas por noche)
+    match /bitacora_viajes/{viajeId} {
+      allow read, write: if true;
+    }
+
+    // Marcadores del mapa del DM: visibles para todos los aventureros
+    match /map_markers/{markerId} {
+      allow read, write: if true;
+    }
+
+    // Marcadores del mapa del jugador: por jugador, para sincronizar entre dispositivos
+    match /player_map_markers/{playerId} {
+      allow read, write: if true;
+    }
+  }
+}

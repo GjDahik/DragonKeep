@@ -1,0 +1,4390 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Crimson Text', serif;
+    background-color: #2a2520;
+    background-image: linear-gradient(180deg, rgba(62, 52, 42, 0.97) 0%, rgba(42, 35, 28, 0.98) 100%),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    background-blend-mode: normal;
+    min-height: 100vh;
+    color: #d4c4a8;
+    padding: 20px;
+    overflow-x: hidden; /* evita scroll horizontal en móvil */
+}
+
+.container { max-width: 1400px; margin: 0 auto; width: 100%; }
+
+/* Searchbar (DM dashboard) */
+.searchbar {
+    width: 100%;
+    padding: 10px 14px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid #4a3c31;
+    border-radius: 6px;
+    color: #d4c4a8;
+    font-size: 1em;
+}
+.searchbar::placeholder { color: #8b7355; }
+.searchbar:focus {
+    outline: none;
+    border-color: #8b5a2b;
+    box-shadow: 0 0 0 2px rgba(139, 90, 43, 0.2);
+}
+
+/* Pagination (DM dashboard) */
+.pagination-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.pagination-bar .pagination-info { color: #8b7355; font-size: 0.9em; }
+.pagination-bar .btn-pagination {
+    padding: 8px 14px;
+    background: rgba(139, 90, 43, 0.3);
+    border: 1px solid #4a3c31;
+    color: #d4c4a8;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+.pagination-bar .btn-pagination:hover:not(:disabled) {
+    border-color: #8b5a2b;
+    background: rgba(139, 90, 43, 0.5);
+}
+.pagination-bar .btn-pagination:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.header {
+    text-align: center;
+    padding: 30px 20px;
+    border-bottom: 2px solid #8b5a2b;
+    margin-bottom: 30px;
+    position: relative;
+}
+.header h1 {
+    font-family: 'Cinzel', serif; font-size: 2.5em; color: #d4af37;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8); margin-bottom: 10px;
+    letter-spacing: 4px;
+}
+.header p { color: #8b7355; font-style: italic; font-size: 1.1em; letter-spacing: 2px; }
+
+.header-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    position: relative;
+}
+.app-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #d4af37;
+    font-family: 'Cinzel', serif;
+    font-size: 1.05em;
+}
+.app-brand-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+/* Animación de fuego al entrar (login DM o jugador) */
+.app-brand-icon--fire-entrance {
+    animation: fire-entrance 1.6s ease-out forwards;
+}
+@keyframes fire-entrance {
+    0% {
+        transform: scale(0.2);
+        opacity: 0;
+        filter: brightness(0.3) saturate(0.5);
+    }
+    20% {
+        transform: scale(1.5);
+        opacity: 1;
+        filter: brightness(2) saturate(1.3);
+        box-shadow: 0 0 24px rgba(255, 140, 0, 0.9), 0 0 48px rgba(255, 69, 0, 0.5);
+    }
+    40% {
+        transform: scale(1.15);
+        filter: brightness(1.5) saturate(1.15);
+        box-shadow: 0 0 16px rgba(255, 140, 0, 0.6);
+    }
+    60% {
+        transform: scale(1.25);
+        filter: brightness(1.7) saturate(1.2);
+        box-shadow: 0 0 20px rgba(255, 100, 0, 0.5);
+    }
+    80% {
+        transform: scale(1.08);
+        filter: brightness(1.25);
+        box-shadow: 0 0 10px rgba(255, 140, 0, 0.35);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+        filter: brightness(1) saturate(1);
+        box-shadow: none;
+    }
+}
+.app-brand-name {
+    white-space: nowrap;
+}
+
+.header-actions-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.header-logout-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0 14px;
+    background: linear-gradient(180deg, #2a2522 0%, #1e1b18 100%);
+    border: 1px solid #4a3c31;
+    color: #f5f5f5;
+    font-size: 0.95em;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+.header-logout-btn:hover {
+    border-color: #8b5a2b;
+    background: linear-gradient(180deg, #352f2a 0%, #2a2522 100%);
+    box-shadow: 0 0 8px rgba(139, 90, 43, 0.35);
+}
+
+/* En escritorio: barra superior similar a móvil (icono + nombre app) */
+@media (min-width: 1201px) {
+    .header {
+        padding: 0;
+        margin-bottom: 24px;
+        position: relative;
+        background: none;
+        border-bottom: none;
+        padding-top: 56px;
+    }
+    .header-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+    }
+    .header-actions {
+        order: -1;
+        flex-shrink: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        min-height: 48px;
+        padding: 12px 16px;
+        background: linear-gradient(180deg, #1e1b18 0%, #1a1815 100%);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        z-index: 100;
+    }
+    .hamburger-btn,
+    .header-logout-btn {
+        display: inline-flex;
+    }
+    .header-inner .player-plaque,
+    .header-inner .dm-plaque {
+        order: 0;
+        margin-top: 20px;
+        margin-bottom: 16px;
+        padding: 20px 14px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+    .header-inner .player-plaque .metal-plaque-content,
+    .header-inner .dm-plaque .metal-plaque-content {
+        gap: 10px;
+    }
+    .header h1 { font-size: 1.6em; }
+    .header p { font-size: 0.95em; }
+    .header::before, .header::after { display: none; }
+}
+.header-title-wrap {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+.nav-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.nav-tab {
+    position: relative;
+    background: linear-gradient(180deg, #2a2522 0%, #1e1b18 100%);
+    border: 1px solid #4a3c31;
+    color: #8b7355;
+    padding: 10px 14px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.88em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+/* Barra superior directorio: tabs centrados (PC y móvil) */
+.player-directorio-top-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 12px 20px;
+    margin-bottom: 24px;
+    padding: 12px 16px;
+    background: linear-gradient(180deg, #2a2522 0%, #1e1b18 100%);
+    border: 1px solid #4a3c31;
+    border-radius: 4px;
+}
+/* Botón "Menú" solo en móvil: muestra/oculta los tabs del directorio */
+.player-directorio-tabs-toggle {
+    display: none;
+    font-family: 'Cinzel', serif;
+    font-size: 0.95em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 12px 18px;
+    border: 1px solid #8b5a2b;
+    background: linear-gradient(180deg, #2a2522 0%, #1e1b18 100%);
+    color: #d4af37;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+.player-directorio-tabs-toggle .player-directorio-tabs-toggle-icon {
+    display: inline-block;
+    transition: transform 0.2s ease;
+}
+.player-directorio-top-bar.directorio-tabs-collapsed .player-directorio-tabs-toggle .player-directorio-tabs-toggle-icon {
+    transform: rotate(180deg);
+}
+.player-directorio-top-bar .player-directorio-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 0;
+    padding: 0;
+    background: none;
+    border: none;
+    flex: 1;
+    min-width: 0;
+}
+/* Tabs de ciudad (Comercios, Historia, Mis notas, Habitantes) */
+.player-view-container.player-in-city-view .player-directorio-top-bar {
+    margin-bottom: 24px;
+}
+.player-view-container.player-in-city-view .player-directorio-tabs {
+    display: flex !important;
+    justify-content: center !important;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 0;
+    padding: 0;
+    background: none;
+    border: none;
+}
+.player-view-container.player-in-city-view .player-directorio-tab {
+    font-family: 'Cinzel', serif;
+    font-size: 0.95em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 12px 20px;
+    min-height: 44px;
+}
+
+/* Badge de notificación (correos sin leer) en nav */
+.nav-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7em;
+    font-weight: 700;
+    line-height: 1;
+    color: #1a1a1a;
+    background: #d4af37;
+    border: 1px solid #8b5a2b;
+    border-radius: 10px;
+    box-shadow: 0 0 6px rgba(212, 175, 55, 0.5);
+}
+.nav-badge:empty,
+.nav-badge.nav-badge--hidden {
+    display: none !important;
+}
+
+/* Tipos con colores bajos (muy desaturados) */
+.nav-tab-type-map { border-color: #4a5048; color: #6e7468; }
+.nav-tab-type-map:hover { border-color: #5a6058; color: #8a9088; }
+.nav-tab-type-map.active { border-color: #5a6058; color: #8a9088; box-shadow: 0 0 8px rgba(90, 96, 88, 0.25); }
+
+.nav-tab-type-players { border-color: #504a46; color: #746e6a; }
+.nav-tab-type-players:hover { border-color: #605a56; color: #8e8884; }
+.nav-tab-type-players.active { border-color: #605a56; color: #8e8884; box-shadow: 0 0 8px rgba(96, 90, 86, 0.25); }
+
+.nav-tab-type-cities { border-color: #484c50; color: #6c7074; }
+.nav-tab-type-cities:hover { border-color: #585c60; color: #888c90; }
+.nav-tab-type-cities.active { border-color: #585c60; color: #888c90; box-shadow: 0 0 8px rgba(88, 92, 96, 0.25); }
+.nav-tab-type-routes { border-color: #4a5040; color: #6e7464; }
+.nav-tab-type-routes:hover { border-color: #5a6050; color: #8a9080; }
+.nav-tab-type-routes.active { border-color: #5a6050; color: #8a9080; box-shadow: 0 0 8px rgba(90, 96, 80, 0.25); }
+
+.nav-tab-type-notifications { border-color: #484c52; color: #6c7076; }
+.nav-tab-type-notifications:hover { border-color: #585c62; color: #888c92; }
+.nav-tab-type-notifications.active { border-color: #585c62; color: #888c92; box-shadow: 0 0 8px rgba(88, 92, 98, 0.25); }
+
+.nav-tab-type-automation { border-color: #4a5054; color: #6e7478; }
+.nav-tab-type-automation:hover { border-color: #5a6064; color: #8a9094; }
+.nav-tab-type-automation.active { border-color: #5a6064; color: #8a9094; box-shadow: 0 0 8px rgba(90, 96, 100, 0.25); }
+
+.nav-tab-type-transactions { border-color: #504c46; color: #746e68; }
+.nav-tab-type-transactions:hover { border-color: #605c56; color: #8e8882; }
+.nav-tab-type-transactions.active { border-color: #605c56; color: #8e8882; box-shadow: 0 0 8px rgba(96, 92, 86, 0.25); }
+
+.nav-tab-type-battle { border-color: #4a4a4a; color: #6e6e6e; }
+.nav-tab-type-battle:hover { border-color: #5a5a5a; color: #8a8a8a; }
+.nav-tab-type-battle.active { border-color: #5a5a5a; color: #8a8a8a; box-shadow: 0 0 8px rgba(90, 90, 90, 0.25); }
+
+.nav-tab-type-inventario { border-color: #504842; color: #746862; }
+.nav-tab-type-inventario:hover { border-color: #605852; color: #8e847e; }
+.nav-tab-type-inventario.active { border-color: #605852; color: #8e847e; box-shadow: 0 0 8px rgba(96, 88, 82, 0.25); }
+
+.nav-tab-type-cdd { border-color: #4c4850; color: #706c74; }
+.nav-tab-type-cdd:hover { border-color: #5c5860; color: #8c8890; }
+.nav-tab-type-cdd.active { border-color: #5c5860; color: #8c8890; box-shadow: 0 0 8px rgba(92, 88, 96, 0.25); }
+
+.nav-tab-type-home { border-color: #524a44; color: #746c66; }
+.nav-tab-type-home:hover { border-color: #625a54; color: #8e867e; }
+.nav-tab-type-home.active { border-color: #625a54; color: #8e867e; box-shadow: 0 0 8px rgba(98, 90, 84, 0.25); }
+
+/* Salir: usa el mismo estilo de botón que el resto; solo ajustamos color de texto en móvil */
+
+/* En escritorio: ocultar el tab de Salir (se usa el botón de la barra superior) */
+@media (min-width: 1201px) {
+    .nav-tab-logout {
+        display: none !important;
+    }
+}
+
+/* Filas de nav: display:contents para que los 8 botones fluyan en un solo flex y el número de líneas dependa solo del ancho (igual con 100% o 125% zoom) */
+.nav-tabs-row1,
+.nav-tabs-row2 {
+    display: contents;
+}
+.nav-tabs .nav-tab {
+    flex-shrink: 1;
+    min-width: 0;
+}
+@media (max-width: 1024px) {
+    .nav-tabs {
+        row-gap: 12px;
+    }
+}
+
+/* Menú hamburguesa: solo visible en móvil */
+.hamburger-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    background: linear-gradient(180deg, #2a2522 0%, #1e1b18 100%);
+    border: 1px solid #4a3c31;
+    color: #d4af37;
+    font-size: 1.4em;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+.hamburger-btn:hover {
+    border-color: #8b5a2b;
+    background: linear-gradient(180deg, #352f2a 0%, #2a2522 100%);
+}
+
+/* Overlay del menú móvil (oculto por defecto) */
+.nav-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+}
+.nav-overlay.open {
+    display: block;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Sub-tabs en área Cartas (vista jugador) - responsive por defecto */
+.player-notifications-subtabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.player-notifications-subtab {
+    position: relative;
+    background: linear-gradient(180deg, #2a2522 0%, #1e1b18 100%);
+    border: 1px solid #4a3c31;
+    color: #8b7355;
+    padding: 10px 18px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.95em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    min-height: 44px; /* touch target mínimo en móvil */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+.player-notifications-subtab:hover {
+    border-color: #8b5a2b;
+    color: #d4af37;
+}
+.player-notifications-subtab.active {
+    background: linear-gradient(180deg, #352f2a 0%, #2a2522 100%);
+    border-color: #8b5a2b;
+    color: #d4af37;
+    box-shadow: 0 0 10px rgba(139, 90, 43, 0.3);
+}
+.player-notifications-subtab-content {
+    display: none;
+}
+#player-notifications-container {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+/* Notificaciones DM: misma estructura que Cartas del jugador */
+.dm-notifications-subtabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.dm-notifications-subtab {
+    background: linear-gradient(180deg, #2a2522 0%, #1e1b18 100%);
+    border: 1px solid #4a3c31;
+    color: #8b7355;
+    padding: 10px 18px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.95em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+.dm-notifications-subtab:hover {
+    border-color: #8b5a2b;
+    color: #d4af37;
+}
+.dm-notifications-subtab.active {
+    background: linear-gradient(180deg, #352f2a 0%, #2a2522 100%);
+    border-color: #8b5a2b;
+    color: #d4af37;
+    box-shadow: 0 0 10px rgba(139, 90, 43, 0.3);
+}
+.dm-notifications-subtab-content {
+    display: none;
+}
+#dm-notifications-container {
+    overflow-x: hidden;
+    width: 100%;
+}
+.dm-notifications-card {
+    background: linear-gradient(180deg, rgba(61, 42, 30, 0.95) 0%, rgba(42, 28, 20, 0.98) 100%);
+    border: 2px solid #5c4023;
+    border-radius: 12px;
+    padding: 24px;
+    width: 100%;
+    max-width: 100%;
+}
+.dm-notifications-card-header {
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #4a3c31;
+}
+.dm-notifications-card-header h3 {
+    font-family: 'Cinzel', serif;
+    color: #d4af37;
+    font-size: 1.3em;
+    margin: 0 0 8px 0;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+.dm-notifications-card-desc {
+    color: #8b7355;
+    font-size: 0.95em;
+    margin: 0;
+    font-style: italic;
+}
+.dm-notifications-card .form-group {
+    margin-bottom: 20px;
+}
+.dm-notifications-card .form-group label {
+    display: block;
+    color: #d4af37;
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.95em;
+}
+.dm-notifications-card select,
+.dm-notifications-card textarea {
+    width: 100%;
+    padding: 12px 14px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid #4a3c31;
+    border-radius: 8px;
+    color: #d4c4a8;
+    font-size: 1em;
+    font-family: inherit;
+}
+.dm-notifications-card textarea {
+    min-height: 140px;
+    resize: vertical;
+}
+.dm-notifications-card-actions {
+    margin-top: 24px;
+}
+.dm-notifications-historial-wrap {
+    max-width: 1000px;
+}
+.dm-notifications-historial-desc {
+    color: #8b7355;
+    margin-bottom: 16px;
+    font-style: italic;
+}
+.dm-notifications-automation-wrap {
+    max-width: 1000px;
+}
+.dm-notifications-automation-header {
+    margin-bottom: 16px;
+}
+.dm-notifications-automation-desc {
+    color: #8b7355;
+    margin-bottom: 20px;
+    font-style: italic;
+}
+.dm-notifications-list .mini-card {
+    margin-bottom: 16px;
+    border: 1px solid #4a3c31;
+    border-radius: 8px;
+    padding: 16px;
+}
+
+/* Cartas del destino (vista jugador) */
+.player-cartas-destino-desc {
+    color: #8b7355;
+    margin-bottom: 20px;
+    font-style: italic;
+}
+/* Layout: cartas a la izquierda, mensaje a la derecha (hasta 4 cartas) */
+.player-cartas-destino-layout {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+.player-cartas-destino-layout .player-cartas-destino-grid {
+    flex: 0 0 auto;
+    max-width: 900px;
+}
+.player-cartas-destino-layout .player-cartas-destino-mensaje-general {
+    flex: 1 1 280px;
+    min-width: 0;
+    margin-top: 0;
+}
+.player-cartas-destino-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    align-items: stretch;
+}
+.player-carta-destino-card {
+    background: linear-gradient(180deg, rgba(61, 42, 30, 0.95) 0%, rgba(42, 28, 20, 0.98) 100%);
+    border: 2px solid #5c4023;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    min-height: 260px;
+    cursor: pointer;
+}
+.player-carta-destino-card:hover {
+    border-color: #8b5a2b;
+    box-shadow: 0 5px 14px rgba(0,0,0,0.4);
+}
+.player-carta-destino-card:focus {
+    outline: none;
+    border-color: #c9a227;
+    box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.35);
+}
+.player-carta-destino-card:active {
+    transform: scale(0.98);
+}
+.player-carta-destino-img-wrap {
+    width: 100%;
+    height: 160px;
+    min-height: 160px;
+    background: #2a231c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    border-radius: 6px 6px 0 0;
+    flex-shrink: 0;
+}
+.player-carta-destino-img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+    object-position: center;
+}
+.player-carta-destino-placeholder {
+    width: 100%;
+    height: 160px;
+    min-height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3em;
+    color: #4a3c31;
+}
+.player-carta-destino-info {
+    padding: 11px;
+    border-radius: 0 0 6px 6px;
+    flex: 1 1 auto;
+    min-height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.player-carta-destino-titulo {
+    font-family: 'Cinzel', serif;
+    color: #e5ddd4;
+    font-size: 0.9em;
+    margin: 0;
+    padding: 8px 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    word-wrap: break-word;
+    text-align: center;
+    line-height: 1.3;
+    background: rgba(30, 26, 22, 0.85);
+    border-radius: 0 0 4px 4px;
+}
+.player-carta-destino-info .player-carta-destino-desc {
+    color: #8b7355;
+    font-size: 0.85em;
+    line-height: 1.5;
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+/* Checkbox "Cumplida" en cada carta del destino */
+.player-carta-destino-check-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 8px;
+    cursor: pointer;
+    user-select: none;
+}
+.player-carta-destino-check {
+    width: 18px;
+    height: 18px;
+    accent-color: #d4af37;
+    cursor: pointer;
+}
+/* Mensaje de victoria permanente: "Has cumplido tu destino" */
+.player-cartas-destino-victory {
+    width: 100%;
+    margin-bottom: 24px;
+    text-align: center;
+}
+.player-cartas-destino-victory-inner {
+    display: block;
+    width: 100%;
+    padding: 16px 28px;
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.25) 0%, rgba(180, 140, 40, 0.35) 100%);
+    border: 2px solid #d4af37;
+    border-radius: 12px;
+    font-family: 'Cinzel', serif;
+    font-size: 1.35em;
+    font-weight: 700;
+    color: #f4e4b8;
+    letter-spacing: 0.08em;
+    text-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+/* Mensaje general a la derecha de las cartas (app jugador) */
+.player-cartas-destino-mensaje-general {
+    margin-top: 0;
+    padding: 20px;
+    background: rgba(35, 30, 26, 0.9);
+    border: 1px solid #4a3c31;
+    border-radius: 8px;
+}
+.player-cartas-destino-mensaje-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.15em;
+    font-weight: 600;
+    color: #c9a868;
+    letter-spacing: 0.06em;
+    margin: 0 0 16px 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #5a4a3a;
+}
+.player-cartas-destino-mensaje-general-content {
+    color: #e8e2d8;
+    font-size: 1.08em;
+    line-height: 1.75;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    letter-spacing: 0.02em;
+    max-width: 52ch;
+}
+.cartas-destino-list-modal {
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.section-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #4a3c31;
+    text-align: center;
+}
+.section-header h2 {
+    font-family: 'Cinzel', serif;
+    color: #d4af37;
+    font-size: 1.8em;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    text-align: center;
+    margin: 0;
+}
+.section-header .btn {
+    position: absolute;
+    right: 0;
+}
+.section-header-map {
+    flex-direction: column;
+    gap: 12px;
+}
+.section-header-map .section-header-map-btn-wrap {
+    width: 100%;
+    text-align: center;
+}
+.section-header-map .section-header-map-btn-wrap .btn {
+    position: static;
+    transform: none;
+}
+
+.map-config-row {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.map-default-level-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+.map-default-level-row-dashboard {
+    margin-bottom: 16px;
+}
+.map-default-level-select {
+    min-width: 200px;
+    padding: 8px 12px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid #4a3c31;
+    border-radius: 6px;
+    color: #d4c4a8;
+    font-size: 0.95em;
+}
+.map-levels-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+.map-levels-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+.map-levels-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 280px;
+    overflow-y: auto;
+}
+.map-level-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid #4a3c31;
+    border-radius: 8px;
+}
+.map-level-thumb {
+    width: 64px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+.map-level-name {
+    flex: 1;
+    color: #e5ddd4;
+    font-size: 0.95em;
+}
+.map-level-visible-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    user-select: none;
+    color: #a89878;
+    font-size: 0.85em;
+}
+.map-level-visible-cb {
+    width: 16px;
+    height: 16px;
+    accent-color: #8b5a2b;
+    cursor: pointer;
+}
+.map-level-visible-text {
+    white-space: nowrap;
+}
+.map-level-item-hidden {
+    opacity: 0.7;
+    border-color: #3a2c21;
+}
+.map-level-item-hidden .map-level-name {
+    color: #8b7355;
+    font-style: italic;
+}
+.map-level-actions {
+    display: flex;
+    gap: 6px;
+}
+
+/* Navegación de niveles en app jugador */
+.player-map-level-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+.player-map-level-name {
+    font-family: 'Cinzel', serif;
+    color: #d4af37;
+    font-size: 1.1em;
+    min-width: 120px;
+    text-align: center;
+}
+.player-map-level-btn {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    font-size: 1.4em;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.player-map-level-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.btn {
+    background: linear-gradient(180deg, #8b5a2b 0%, #6b4423 100%);
+    border: none; color: #f5e6c8; padding: 10px 20px;
+    font-family: 'Cinzel', serif; font-weight: 600; cursor: pointer;
+    border-radius: 4px; transition: all 0.3s ease;
+    text-transform: uppercase; letter-spacing: 1px; font-size: 0.9em;
+}
+.btn:hover { background: linear-gradient(180deg, #a06830 0%, #8b5a2b 100%); box-shadow: 0 4px 15px rgba(139, 90, 43, 0.4); }
+.btn-danger { background: linear-gradient(180deg, #6b2a2a 0%, #4a1e1e 100%); color: #d4c4a8; }
+.btn-danger:hover { background: linear-gradient(180deg, #8b3a3a 0%, #6b2a2a 100%); }
+.btn-success { background: linear-gradient(180deg, #2a5c3a 0%, #1e4a2a 100%); color: #d4f0c8; border: 1px solid #4a8c5a; }
+.btn-success:hover { background: linear-gradient(180deg, #3a6c4a 0%, #2a5c3a 100%); }
+.btn-secondary {
+    background: linear-gradient(180deg, #2a2522 0%, #1e1b18 100%);
+    color: #d4af37; border: 1px solid #8b5a2b;
+}
+.btn-secondary:hover { background: linear-gradient(180deg, #352f2a 0%, #2a2522 100%); }
+.btn-small { padding: 6px 12px; font-size: 0.8em; }
+
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+
+.card {
+    background: linear-gradient(180deg, rgba(61, 42, 30, 0.95) 0%, rgba(42, 28, 20, 0.98) 100%);
+    border: 2px solid #5c4023; border-radius: 12px; padding: 20px; transition: all 0.3s ease;
+}
+.card:hover { border-color: #d4af37; transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4); }
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
+.card-title { font-family: 'Cinzel', serif; font-size: 1.3em; color: #d4af37; }
+.card-subtitle { color: #a89878; font-style: italic; font-size: 0.95em; }
+.card-body {
+    margin-bottom: 15px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+.card-body p,
+.card-title {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+.card-stat { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #5c4023; }
+.card-stat:last-child { border-bottom: none; }
+.card-stat-label { color: #a89878; }
+.card-stat-value { color: #d4c4a8; font-weight: 600; }
+.gold-value { color: #ffd700; }
+.tipo-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.7em; text-transform: uppercase; margin-bottom: 4px; font-weight: 600; }
+.tipo-badge.tipo-compra { background: rgba(139, 90, 43, 0.5); color: #d4af37; border: 1px solid #8b5a2b; }
+.tipo-badge.tipo-venta { background: rgba(46, 204, 113, 0.2); color: #2ecc71; border: 1px solid #2ecc71; }
+.tipo-badge.tipo-uso { background: rgba(155, 89, 182, 0.2); color: #9b59b6; border: 1px solid #9b59b6; }
+.tipo-badge.tipo-deposito { background: rgba(90, 138, 90, 0.2); color: #5a8a5a; border: 1px solid #5a8a5a; }
+.tipo-badge.tipo-retiro { background: rgba(74, 156, 93, 0.2); color: #4a9c5d; border: 1px solid #4a9c5d; }
+.tipo-badge.tipo-hospedaje { background: rgba(139, 115, 85, 0.2); color: #8b7355; border: 1px solid #8b7355; }
+.card-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.card-actions .btn { flex: 1; min-width: 80px; padding: 8px 12px; font-size: 0.9em; }
+
+/* Tarjetas de ciudad (vista jugador): contenido centrado en PC y móvil */
+#player-cities-container .card .card-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+#player-cities-container .card .card-title {
+    text-align: center;
+}
+#player-cities-container .card .card-body {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+#player-cities-container .card .card-body p {
+    width: 100%;
+    max-width: 100%;
+}
+#player-cities-container .card .card-body .btn {
+    align-self: center;
+}
+.player-city-card-notes {
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    background: rgba(26, 26, 26, 0.5);
+    border: 1px solid #4a3c31;
+    border-radius: 6px;
+    text-align: left;
+}
+.player-city-note-preview {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* City Expandable */
+.city-card {
+    background: linear-gradient(180deg, #252220 0%, #1e1b18 100%);
+    border: 1px solid #4a3c31; border-radius: 6px; margin-bottom: 20px;
+    transition: all 0.3s ease; overflow: hidden;
+}
+.city-card:hover { border-color: #8b5a2b; }
+.city-card.expanded { border-color: #8b5a2b; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); }
+.city-header {
+    padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+    gap: 16px;
+}
+.city-header:hover { background: rgba(139, 90, 43, 0.1); }
+.city-info h3 { font-family: 'Cinzel', serif; font-size: 1.4em; color: #d4af37; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px; word-wrap: break-word; overflow-wrap: break-word; }
+.city-info p { color: #8b7355; font-style: italic; word-wrap: break-word; overflow-wrap: break-word; }
+.city-content {
+    display: none;
+    padding: 0 20px 20px;
+    border-top: 1px solid #4a3c31;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+.city-meta { display: flex; gap: 15px; align-items: center; }
+.city-meta span { color: #8b7355; font-size: 0.9em; }
+.city-toggle { font-size: 1.5em; color: #8b5a2b; transition: transform 0.3s; }
+.city-card.expanded .city-toggle { transform: rotate(180deg); }
+.city-card.expanded .city-content { display: block; }
+.city-actions { display: flex; gap: 10px; padding: 15px 20px; background: rgba(0,0,0,0.2); }
+
+.subsection { margin-top: 20px; }
+/* Diferenciación visual: NPCs vs Tiendas */
+.subsection-npcs {
+    border-left: 4px solid #5a7a4a;
+    padding-left: 12px;
+    margin-left: 0;
+    background: rgba(90, 122, 74, 0.06);
+    border-radius: 0 6px 6px 0;
+    padding: 12px 12px 16px 16px;
+}
+.subsection-npcs .subsection-header { border-bottom-color: #5a7a4a; margin-bottom: 12px; }
+.subsection-npcs .subsection-header h4 { color: #8fbc8f; }
+.subsection-shops {
+    border-left: 4px solid #8b6914;
+    padding-left: 12px;
+    margin-left: 0;
+    background: rgba(139, 105, 20, 0.06);
+    border-radius: 0 6px 6px 0;
+    padding: 12px 12px 16px 16px;
+}
+.subsection-shops .subsection-header { border-bottom-color: #8b6914; margin-bottom: 12px; }
+.subsection-shops .subsection-header h4 { color: #b8860b; }
+.subsection-header {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid #4a3c31;
+    margin-bottom: 12px;
+}
+.subsection-header-title {
+    cursor: pointer;
+    user-select: none;
+}
+.subsection-header-title:hover { opacity: 0.9; }
+.subsection-header-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    padding: 4px 0 0;
+}
+.subsection-header-toolbar .btn { margin: 0; }
+.subsection-header h4 {
+    font-family: 'Cinzel', serif;
+    color: #8b7355;
+    font-size: 1.1em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: left;
+    margin: 0;
+}
+.subsection-header-toggle {
+    cursor: pointer;
+    user-select: none;
+}
+.subsection-header-toggle:hover {
+    opacity: 0.9;
+}
+.subsection-toggle-icon {
+    font-size: 0.85em;
+    margin-left: 6px;
+    opacity: 0.9;
+}
+.mini-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
+.mini-card {
+    background: linear-gradient(180deg, #2a2522 0%, #1e1b18 100%); 
+    border: 1px solid #4a3c31; border-radius: 6px; padding: 15px;
+    transition: all 0.3s ease;
+}
+.mini-card:hover { 
+    border-color: #8b5a2b; 
+    box-shadow: 0 2px 8px rgba(139, 90, 43, 0.2);
+    transform: translateY(-1px);
+}
+/* Tarjetas NPC: borde verde oscuro */
+.mini-card-npc {
+    border-left: 3px solid #5a7a4a;
+}
+.mini-card-npc:hover { border-left-color: #7a9a6a; }
+/* Tarjetas Tienda: borde ámbar */
+.mini-card-shop {
+    border-left: 3px solid #8b6914;
+}
+.mini-card-shop:hover { border-left-color: #b8860b; }
+/* Badge actitud (NPCs) */
+.badge-actitud {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.8em;
+    font-weight: 600;
+    text-transform: capitalize;
+    margin-left: 4px;
+}
+.badge-actitud-amigable { background: rgba(76, 153, 0, 0.35); color: #9fdf9f; border: 1px solid #5a7a4a; }
+.badge-actitud-neutral { background: rgba(180, 160, 80, 0.25); color: #d4c4a8; border: 1px solid #8b7355; }
+.badge-actitud-hostil { background: rgba(180, 60, 50, 0.35); color: #e8a0a0; border: 1px solid #8b4545; }
+/* Badge sin inventario (tiendas) */
+.badge-sin-inventario {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75em;
+    color: #8b7355;
+    background: rgba(139, 115, 85, 0.2);
+    border: 1px solid #4a3c31;
+    margin-left: 4px;
+}
+.mini-card-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+.mini-card-header-row .mini-card-title {
+    margin-bottom: 0;
+    flex: 1;
+    min-width: 0;
+}
+.mini-card-delete-btn {
+    flex-shrink: 0;
+    padding: 6px 10px;
+}
+.mini-card-title { font-family: 'Cinzel', serif; color: #d4af37; margin-bottom: 8px; }
+.mini-card-info { color: #8b7355; font-size: 0.9em; margin-bottom: 10px; }
+.mini-card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Jugador visible/oculto en listas y transacciones (DM) */
+.mini-card-player-hidden { opacity: 0.85; border-color: #5a4a4a; }
+.mini-card-player-hidden:hover { border-color: #6a5a5a; }
+.mini-card-badge-hidden {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75em;
+    color: #a89a8c;
+    background: rgba(90, 74, 74, 0.4);
+    border: 1px solid #5a4a4a;
+    margin-bottom: 8px;
+}
+
+/* Badge "Disparada" en reglas de Análisis de objetos (ya ejecutadas una vez) */
+.rule-triggered-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #8b7355;
+    background: rgba(184, 134, 11, 0.2);
+    border: 1px solid #8b6914;
+}
+
+/* Tabs en modal Ver reglas (Todas / Pendientes / Disparadas) */
+.ver-reglas-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 10px;
+}
+.ver-reglas-tab {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 0.9em;
+    border: 1px solid #4a3c31;
+    border-radius: 6px;
+    background: rgba(30, 27, 24, 0.8);
+    color: #8b7355;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.ver-reglas-tab:hover {
+    background: rgba(74, 60, 49, 0.4);
+    color: #d4c4a8;
+    border-color: #6a5a4a;
+}
+.ver-reglas-tab.active {
+    background: rgba(184, 134, 11, 0.25);
+    border-color: #8b6914;
+    color: #d4af37;
+}
+
+.player-visibility-visible {
+    background: linear-gradient(180deg, rgba(90, 120, 90, 0.35) 0%, rgba(60, 90, 60, 0.25) 100%);
+    border: 1px solid #5a7a5a;
+    color: #9fcf9f;
+}
+.player-visibility-visible:hover { border-color: #7a9a7a; color: #bfefbf; }
+.player-visibility-hidden {
+    background: linear-gradient(180deg, rgba(90, 74, 74, 0.4) 0%, rgba(60, 50, 50, 0.3) 100%);
+    border: 1px solid #5a4a4a;
+    color: #a89a8c;
+}
+.player-visibility-hidden:hover { border-color: #6a5a5a; color: #c4b8a8; }
+
+/* Tarjetas de misiones: layout ordenado, títulos largos sin desbordar */
+.missions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.mission-card {
+    background: linear-gradient(180deg, #2a2522 0%, #1e1b18 100%);
+    border: 1px solid #4a3c31;
+    border-radius: 8px;
+    padding: 18px 20px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.mission-card:hover {
+    border-color: #8b5a2b;
+    box-shadow: 0 2px 12px rgba(139, 90, 43, 0.15);
+}
+.mission-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 10px;
+    min-height: 0;
+}
+.mission-card-title {
+    font-family: 'Cinzel', serif;
+    color: #d4af37;
+    font-size: 1.05em;
+    line-height: 1.35;
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+.mission-card-meta {
+    flex-shrink: 0;
+    font-size: 0.8em;
+    color: #8b7355;
+    text-align: right;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+.mission-card-desc {
+    color: #a89878;
+    font-size: 0.9em;
+    line-height: 1.5;
+    margin: 0 0 10px 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    white-space: pre-wrap;
+    overflow: visible;
+    max-height: none;
+    display: block;
+    -webkit-line-clamp: unset;
+    text-overflow: unset;
+}
+.mission-card-extra {
+    color: #8b7355;
+    font-size: 0.85em;
+    margin-bottom: 12px;
+}
+.mission-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+.mission-card-actions .btn { flex-shrink: 0; }
+
+/* Notas del jugador en misiones (En curso): área desplegable + lista */
+.player-mission-notes-wrap {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #4a3c31;
+}
+.player-mission-notes-details {
+    border: 1px solid #4a3c31;
+    border-radius: 8px;
+    background: rgba(26, 26, 26, 0.5);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+.player-mission-notes-summary {
+    padding: 10px 14px;
+    cursor: pointer;
+    color: #a89878;
+    font-size: 0.95em;
+    font-family: 'Crimson Text', serif;
+    list-style: none;
+    user-select: none;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+.player-mission-notes-summary::-webkit-details-marker { display: none; }
+.player-mission-notes-summary::before {
+    content: '▶';
+    display: inline-block;
+    margin-right: 8px;
+    font-size: 0.7em;
+    transition: transform 0.2s ease;
+}
+.player-mission-notes-details[open] .player-mission-notes-summary::before {
+    transform: rotate(90deg);
+}
+.player-mission-notes-summary:hover {
+    background: rgba(139, 90, 43, 0.15);
+    color: #d4c4a8;
+}
+.player-mission-notes-inner {
+    padding: 12px 14px 14px;
+    border-top: 1px solid #4a3c31;
+}
+.player-mission-notes-list {
+    list-style: none;
+    margin: 0 0 14px 0;
+    padding: 0;
+}
+.player-mission-notes-item {
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    background: rgba(26, 26, 26, 0.7);
+    border: 1px solid #4a3c31;
+    border-radius: 6px;
+    border-left: 3px solid #8b5a2b;
+}
+.player-mission-notes-item:last-child { margin-bottom: 0; }
+.player-mission-notes-item-date {
+    display: block;
+    font-size: 0.75em;
+    color: #8b7355;
+    margin-bottom: 4px;
+}
+.player-mission-notes-item-date:empty { display: none; }
+.player-mission-notes-item-text {
+    color: #d4c4a8;
+    font-family: 'Crimson Text', serif;
+    font-size: 0.95em;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+.player-mission-notes-item-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+.player-mission-notes-item-actions .btn-notes-action {
+    padding: 4px 8px;
+    font-size: 0.85em;
+}
+.player-mission-notes-edit-wrap {
+    width: 100%;
+}
+.player-mission-notes-edit-wrap .player-mission-notes-edit-input {
+    margin-bottom: 8px;
+}
+.player-mission-notes-edit-buttons {
+    display: flex;
+    gap: 8px;
+}
+.player-mission-notes-input {
+    width: 100%;
+    min-height: 80px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    background: #1a1a1a;
+    border: 2px solid #4a3c31;
+    border-radius: 8px;
+    color: #d4c4a8;
+    font-family: 'Crimson Text', serif;
+    font-size: 0.95em;
+    line-height: 1.6;
+    resize: vertical;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.player-mission-notes-input:focus {
+    outline: none;
+    border-color: #8b5a2b;
+    box-shadow: 0 0 10px rgba(139, 90, 43, 0.35);
+}
+.player-mission-notes-input::placeholder {
+    color: #6b5d4a;
+    font-style: italic;
+}
+.player-mission-notes-wrap .btn {
+    margin-top: 0;
+}
+
+/* Escucha la leyenda: descripción junto al reproductor en PC, apilado en móvil */
+.legend-card .legend-track-body {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+.legend-track-desc {
+    flex: 1;
+    min-width: 0;
+    color: #a89878;
+    font-size: 0.9em;
+    line-height: 1.5;
+}
+.legend-track-desc-text { margin: 0; word-wrap: break-word; white-space: pre-wrap; }
+.legend-track-audio {
+    flex: 0 0 auto;
+    min-width: 220px;
+    max-width: 100%;
+}
+.legend-track-audio audio {
+    width: 100%;
+    min-width: 200px;
+    max-width: 380px;
+    height: 40px;
+}
+@media (max-width: 1200px) {
+    .legend-card .legend-track-body {
+        flex-direction: column;
+        gap: 12px;
+    }
+    .legend-track-desc { min-width: 100%; }
+    .legend-track-audio {
+        min-width: 100%;
+        width: 100%;
+    }
+    .legend-track-audio audio {
+        min-width: 100%;
+        max-width: 100%;
+    }
+    .legend-card .mission-card-header {
+        flex-wrap: wrap;
+    }
+    .legend-card .mission-card-header .mission-card-title { flex: 1 1 100%; }
+}
+
+/* Formulario Escucha la leyenda: en móvil campos y botón apilados */
+@media (max-width: 480px) {
+    .legend-form-row > div { flex: 1 1 100% !important; min-width: 100% !important; }
+    .legend-form-row .btn { width: 100%; }
+}
+
+/* Modal */
+.modal-overlay {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.9); z-index: 1000;
+    justify-content: center; align-items: center; padding: 20px;
+}
+.modal-overlay.active { display: flex; }
+
+/* Pantalla de transición con icono de fuego (login → app) */
+.fire-transition-screen {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #1a1512;
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+}
+.fire-transition-screen.active {
+    display: flex;
+}
+.fire-transition-inner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.fire-transition-icon {
+    width: 120px;
+    height: 120px;
+    border-radius: 24px;
+}
+.fire-transition-screen.active .fire-transition-icon {
+    animation: fire-transition-burn 2.2s ease-in-out forwards;
+}
+@keyframes fire-transition-burn {
+    0% {
+        transform: scale(0.4);
+        opacity: 0.3;
+        filter: brightness(0.4) saturate(0.6);
+    }
+    25% {
+        transform: scale(1.15);
+        opacity: 1;
+        filter: brightness(1.6) saturate(1.2);
+        box-shadow: 0 0 60px rgba(255, 120, 0, 0.8), 0 0 120px rgba(255, 69, 0, 0.4);
+    }
+    50% {
+        transform: scale(1.2);
+        filter: brightness(1.8) saturate(1.25);
+        box-shadow: 0 0 80px rgba(255, 140, 0, 0.7), 0 0 140px rgba(255, 80, 0, 0.35);
+    }
+    75% {
+        transform: scale(1.1);
+        filter: brightness(1.4);
+        box-shadow: 0 0 40px rgba(255, 130, 0, 0.5);
+    }
+    100% {
+        transform: scale(1.5);
+        opacity: 0;
+        filter: brightness(2) saturate(1.3);
+        box-shadow: 0 0 100px rgba(255, 100, 0, 0.6);
+    }
+}
+
+/* D20 en lugar del icono del header (clic) */
+.app-brand-d20 {
+    display: none;
+    min-width: 28px;
+    height: 24px;
+    padding: 0 6px;
+    border-radius: 4px;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: #d4af37;
+    background: rgba(0,0,0,0.35);
+    line-height: 1;
+}
+.app-brand-d20-value {
+    min-width: 1.2em;
+    text-align: center;
+    display: block;
+}
+.app-brand-d20.is-visible {
+    display: inline-flex;
+}
+.app-brand-d20.is-rolling {
+    animation: d20-rolling 0.15s ease-in-out infinite;
+}
+@keyframes d20-rolling {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+}
+.app-brand.is-d20 .app-brand-icon {
+    display: none;
+}
+
+/* Modal de login: asegurar que el contenido sea visible y scrollee */
+#login-modal .modal { max-height: 90vh; overflow-y: auto; }
+#login-modal .modal-body { overflow-y: auto; }
+#login-modal #login-player-select-group,
+#login-modal #login-dm-name-group { display: none; }
+#login-modal #login-player-select-group.login-field-visible,
+#login-modal #login-dm-name-group.login-field-visible { display: block !important; }
+
+.modal {
+    background: linear-gradient(180deg, #252220 0%, #1a1a1a 100%);
+    border: 1px solid #8b5a2b; border-radius: 6px;
+    max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto;
+}
+.modal-header {
+    padding: 20px; border-bottom: 1px solid #4a3c31;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.modal-header h3 { font-family: 'Cinzel', serif; color: #d4af37; font-size: 1.4em; text-transform: uppercase; letter-spacing: 2px; }
+.modal-close {
+    background: none; border: none; color: #8b7355; font-size: 1.5em;
+    cursor: pointer; transition: color 0.3s;
+}
+.modal-close:hover { color: #d4af37; }
+.modal-body {
+    padding: 20px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+.modal-body p,
+.modal-body .form-group {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+.modal-footer {
+    padding: 20px; border-top: 1px solid #4a3c31;
+    display: flex; gap: 10px; justify-content: flex-end;
+}
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; margin-bottom: 8px; color: #d4af37; font-family: 'Cinzel', serif; text-transform: uppercase; font-size: 0.9em; letter-spacing: 1px; }
+.form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 12px; background: #1a1a1a; border: 1px solid #4a3c31;
+    border-radius: 4px; color: #d4c4a8; font-family: 'Crimson Text', serif; font-size: 1em;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: none; border-color: #8b5a2b;
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+/* Modal Banco (jugador) */
+.player-banco-modal .modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.player-banco-modal-title { margin: 0; font-family: 'Cinzel', serif; color: #d4af37; font-size: 1.4em; }
+.player-banco-modal-subtitle { margin: 4px 0 0 0; color: #7a6a5a; font-size: 0.85em; font-style: italic; }
+.player-banco-modal-body { display: flex; flex-direction: column; gap: 20px; }
+.player-banco-balances { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.player-banco-balance-box {
+    background: rgba(0,0,0,0.3); border: 1px solid #4a3c31; border-radius: 8px;
+    padding: 16px; text-align: center; display: flex; flex-direction: column; gap: 4px;
+}
+.player-banco-balance-box-bank .player-banco-balance-value { color: #5a8a5a; }
+.player-banco-balance-label { font-size: 0.8em; color: #8b7355; text-transform: uppercase; letter-spacing: 0.05em; }
+.player-banco-balance-value { font-size: 1.4em; font-weight: 600; color: #d4af37; }
+.player-banco-fee-hint { color: #8b7355; font-size: 0.85em; text-align: center; margin: 0; }
+.player-banco-actions-row {
+    display: flex; flex-direction: row; align-items: center; gap: 12px; flex-wrap: nowrap;
+    padding: 12px 0; border-top: 1px solid rgba(74,60,49,0.5); border-bottom: 1px solid rgba(74,60,49,0.5);
+}
+.player-banco-amount-label {
+    font-size: 0.9em; color: #8b7355; white-space: nowrap; flex-shrink: 0;
+}
+.player-banco-amount-input {
+    width: 110px; min-width: 90px; padding: 10px 12px; background: #1a1a1a;
+    border: 1px solid #4a3c31; border-radius: 6px; color: #d4c4a8; font-size: 1em; flex-shrink: 0;
+}
+.player-banco-amount-input:focus { outline: none; border-color: #8b5a2b; }
+.player-banco-buttons { display: flex; gap: 8px; flex-shrink: 0; }
+.player-banco-btn-deposit,
+.player-banco-btn-withdraw { white-space: nowrap; min-width: 100px; }
+.player-banco-register-section { padding-top: 4px; }
+.player-banco-register-hint { color: #8b7355; font-size: 0.85em; margin: 0 0 12px 0; line-height: 1.4; }
+.player-banco-register-btn { width: 100%; justify-content: center; }
+
+/* Modal Banco en móvil: scroll suave y contenido compacto */
+@media (max-width: 1200px) {
+    #player-banco-modal.modal-overlay.active {
+        padding: 12px;
+        align-items: flex-start;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    #player-banco-modal .modal {
+        max-height: none;
+        margin: auto 0;
+        flex-shrink: 0;
+    }
+    .player-banco-modal .modal-header { padding: 14px 16px; }
+    .player-banco-modal-title { font-size: 1.2em; }
+    .player-banco-modal-subtitle { font-size: 0.8em; }
+    .player-banco-modal-body {
+        padding: 0 16px 16px;
+        gap: 14px;
+        overflow-y: visible;
+    }
+    .player-banco-balances { gap: 10px; }
+    .player-banco-balance-box { padding: 12px; }
+    .player-banco-balance-value { font-size: 1.2em; }
+    .player-banco-fee-hint { font-size: 0.8em; }
+    .player-banco-actions-row {
+        flex-wrap: wrap;
+        padding: 10px 0;
+        gap: 10px;
+    }
+    .player-banco-amount-label { flex-basis: 100%; margin-bottom: 0; }
+    .player-banco-amount-input { width: 100%; max-width: 140px; min-width: 0; }
+    .player-banco-buttons { flex-wrap: nowrap; }
+    .player-banco-btn-deposit,
+    .player-banco-btn-withdraw { min-width: 0; padding: 10px 14px; font-size: 0.9em; }
+    .player-banco-register-section { padding-top: 0; }
+    .player-banco-register-hint { font-size: 0.8em; margin-bottom: 10px; }
+    .player-banco-modal .modal-footer { padding: 14px 16px; }
+}
+
+@media (max-width: 480px) {
+    #player-banco-modal.modal-overlay.active { padding: 8px; }
+    .player-banco-modal .modal-header { padding: 12px 14px; }
+    .player-banco-modal-body { padding: 0 14px 14px; gap: 12px; }
+    .player-banco-balance-box { padding: 10px; }
+    .player-banco-balance-value { font-size: 1.1em; }
+    .player-banco-actions-row { flex-direction: column; align-items: stretch; }
+    .player-banco-amount-label { flex-basis: auto; }
+    .player-banco-amount-input { max-width: none; }
+    .player-banco-buttons { width: 100%; justify-content: stretch; }
+    .player-banco-btn-deposit,
+    .player-banco-btn-withdraw { flex: 1; }
+}
+
+/* Modal de Correo (notificación) en móvil: más espacio para texto y scroll */
+@media (max-width: 1200px) {
+    #notification-modal.modal-overlay.active {
+        padding: 12px;
+        align-items: flex-start;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    #notification-modal .modal {
+        max-width: 100%;
+        margin: 12px 0;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    #notification-modal .modal-body {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 12px 16px;
+        -webkit-overflow-scrolling: touch;
+    }
+    #notification-modal-content .notification-letter {
+        padding: 16px !important;
+        max-width: 100%;
+    }
+    #notification-modal-content .notification-letter-header {
+        margin-bottom: 16px !important;
+    }
+    #notification-modal-content .notification-letter-icon {
+        font-size: 2.5em !important;
+        margin-bottom: 8px !important;
+    }
+    #notification-modal-content .notification-letter-title {
+        font-size: 1.2em !important;
+        letter-spacing: 1px !important;
+    }
+    #notification-modal-content .notification-letter-date {
+        font-size: 0.85em !important;
+    }
+    #notification-modal-content .notification-letter-body {
+        padding: 16px !important;
+        margin: 16px 0 !important;
+    }
+    #notification-modal-content .notification-letter-text {
+        font-size: 0.95em !important;
+        line-height: 1.65 !important;
+    }
+    #notification-modal-content .notification-letter-actions .btn {
+        min-width: 0;
+        width: 100%;
+        font-size: 1em !important;
+    }
+}
+
+@media (max-width: 480px) {
+    #notification-modal.modal-overlay.active { padding: 8px; }
+    #notification-modal .modal { margin: 8px 0; max-height: 92vh; }
+    #notification-modal .modal-body { padding: 10px 12px; }
+    #notification-modal-content .notification-letter { padding: 12px !important; }
+    #notification-modal-content .notification-letter-icon { font-size: 2em !important; margin-bottom: 6px !important; }
+    #notification-modal-content .notification-letter-title { font-size: 1.05em !important; }
+    #notification-modal-content .notification-letter-body { padding: 12px !important; margin: 12px 0 !important; }
+    #notification-modal-content .notification-letter-text { font-size: 0.9em !important; line-height: 1.6 !important; }
+}
+
+.empty-state { text-align: center; padding: 40px 20px; color: #8b7355; }
+.empty-state-icon { font-size: 3em; margin-bottom: 15px; }
+
+.toast {
+    position: fixed; bottom: 20px; right: 20px;
+    background: linear-gradient(180deg, #252220 0%, #1a1a1a 100%);
+    border: 1px solid #8b5a2b; padding: 15px 25px; border-radius: 4px;
+    color: #d4c4a8; z-index: 2000; transform: translateX(150%); transition: transform 0.3s ease;
+}
+.toast.show { transform: translateX(0); }
+.toast.error { border-color: #6b2a2a; }
+
+/* Vista Personaje (mismo login) */
+.player-hero { text-align: center; padding: 30px 20px; border-bottom: 2px solid #8b5a2b; margin-bottom: 20px; }
+.player-hero h1 { font-family: 'Cinzel', serif; color: #d4af37; font-size: 2em; margin-bottom: 8px; }
+.player-hero-sub { color: #8b7355; font-style: italic; }
+.player-card { background: linear-gradient(180deg, rgba(61, 42, 30, 0.95) 0%, rgba(42, 28, 20, 0.98) 100%); border: 2px solid #5c4023; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+.player-card h3 { font-family: 'Cinzel', serif; color: #d4af37; margin-bottom: 15px; font-size: 1.2em; }
+.player-stat { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #5c4023; }
+.player-stat:last-child { border-bottom: none; }
+.player-stat-label { color: #a89878; }
+.player-stat-value { color: #d4c4a8; font-weight: 600; }
+.player-inventory-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 6px; margin-bottom: 8px; border: 1px solid #4a3c31; }
+.player-inventory-item:last-child { margin-bottom: 0; }
+.rarity-badge { padding: 2px 8px; border-radius: 10px; font-size: 0.75em; text-transform: uppercase; }
+
+/* Toolbar inventario */
+.player-inventory-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 16px;
+}
+.player-inventory-search-input {
+    flex: 1;
+    min-width: 180px;
+    padding: 10px 14px;
+    background: #1a1a1a;
+    border: 1px solid #4a3c31;
+    border-radius: 6px;
+    color: #d4c4a8;
+    font-size: 1em;
+}
+.player-inventory-search-input::placeholder { color: #8b7355; }
+.player-inventory-search-input:focus {
+    outline: none;
+    border-color: #8b5a2b;
+}
+.player-inventory-filter-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.player-inventory-filter-label {
+    color: #a89878;
+    font-size: 0.9em;
+    flex-shrink: 0;
+}
+.player-inventory-filter-select {
+    min-width: 160px;
+    padding: 10px 12px;
+    background: #1a1a1a;
+    border: 1px solid #4a3c31;
+    border-radius: 6px;
+    color: #d4c4a8;
+    font-size: 1em;
+    cursor: pointer;
+}
+.player-inventory-filter-select:focus { outline: none; border-color: #8b5a2b; }
+
+/* Ordenar inventario (visible en móvil y desktop) */
+.player-inventory-sort-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.player-inventory-sort-label {
+    color: #a89878;
+    font-size: 0.9em;
+    flex-shrink: 0;
+}
+.player-inventory-sort-select {
+    min-width: 180px;
+    padding: 10px 12px;
+    background: #1a1a1a;
+    border: 1px solid #4a3c31;
+    border-radius: 6px;
+    color: #d4c4a8;
+    font-size: 1em;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23a89878' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 32px;
+}
+.player-inventory-sort-select:focus { outline: none; border-color: #8b5a2b; }
+
+/* Modal confirmación Usar ítem */
+.player-use-confirm-modal {
+    background: linear-gradient(180deg, rgba(26, 22, 18, 0.98) 0%, rgba(18, 15, 12, 0.98) 100%);
+    border: 1px solid #4a3c31;
+    box-shadow: 0 0 24px rgba(139, 90, 43, 0.2), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.player-use-confirm-header {
+    border-bottom: 1px solid #4a3c31;
+    padding: 14px 18px;
+}
+.player-use-confirm-title {
+    margin: 0;
+    font-family: 'Cinzel', serif;
+    font-size: 1.2em;
+    color: #d4af37;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+.player-use-confirm-body {
+    padding: 20px 18px;
+}
+.player-use-confirm-message {
+    margin: 0 0 8px 0;
+    font-size: 1.05em;
+    color: #e5ddd4;
+    line-height: 1.4;
+}
+.player-use-confirm-message strong {
+    color: #d4af37;
+}
+.player-use-confirm-hint {
+    margin: 0;
+    font-size: 0.9em;
+    color: #8b7355;
+}
+.player-use-confirm-footer {
+    border-top: 1px solid #4a3c31;
+    padding: 14px 18px;
+    gap: 10px;
+}
+.player-use-confirm-btn {
+    background: linear-gradient(180deg, rgba(139, 90, 43, 0.5) 0%, rgba(90, 60, 30, 0.6) 100%);
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    color: #f4e4a6;
+}
+.player-use-confirm-btn:hover {
+    background: linear-gradient(180deg, rgba(139, 90, 43, 0.65) 0%, rgba(90, 60, 30, 0.75) 100%);
+}
+
+/* Modal confirmación genérico (estilo app) */
+.app-confirm-modal {
+    background: linear-gradient(180deg, rgba(26, 22, 18, 0.98) 0%, rgba(18, 15, 12, 0.98) 100%);
+    border: 1px solid #4a3c31;
+    box-shadow: 0 0 24px rgba(139, 90, 43, 0.2), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.app-confirm-header {
+    border-bottom: 1px solid #4a3c31;
+    padding: 14px 18px;
+}
+.app-confirm-title {
+    margin: 0;
+    font-family: 'Cinzel', serif;
+    font-size: 1.2em;
+    color: #d4af37;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+.app-confirm-body {
+    padding: 20px 18px;
+}
+.app-confirm-message {
+    margin: 0;
+    font-size: 1.05em;
+    color: #e5ddd4;
+    line-height: 1.5;
+    text-align: center;
+}
+.app-confirm-footer {
+    border-top: 1px solid #4a3c31;
+    padding: 14px 18px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+.app-confirm-do-btn {
+    background: linear-gradient(180deg, rgba(139, 90, 43, 0.5) 0%, rgba(90, 60, 30, 0.6) 100%);
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    color: #f4e4a6;
+}
+.app-confirm-do-btn:hover {
+    background: linear-gradient(180deg, rgba(139, 90, 43, 0.65) 0%, rgba(90, 60, 30, 0.75) 100%);
+}
+.app-confirm-modal.app-confirm-modal--danger .app-confirm-do-btn {
+    background: linear-gradient(180deg, rgba(120, 40, 40, 0.6) 0%, rgba(80, 25, 25, 0.7) 100%);
+    border-color: rgba(180, 80, 80, 0.5);
+    color: #f4c4c4;
+}
+.app-confirm-modal.app-confirm-modal--danger .app-confirm-do-btn:hover {
+    background: linear-gradient(180deg, rgba(140, 50, 50, 0.7) 0%, rgba(100, 30, 30, 0.8) 100%);
+}
+
+/* Modal detalle de ítem (inventario jugador: ver toda la info como en tienda) */
+.player-inventory-detail-modal {
+    background: linear-gradient(180deg, rgba(26, 22, 18, 0.98) 0%, rgba(18, 15, 12, 0.98) 100%);
+    border: 1px solid #4a3c31;
+    box-shadow: 0 0 24px rgba(139, 90, 43, 0.2), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.player-inventory-detail-body {
+    padding: 20px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.player-inventory-detail-name {
+    font-family: 'Cinzel', serif;
+    font-size: 1.25em;
+    font-weight: 600;
+    color: #d4af37;
+    letter-spacing: 1px;
+}
+.player-inventory-detail-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    font-size: 0.95em;
+    color: #a89878;
+}
+.player-inventory-detail-damage {
+    padding: 10px 14px;
+    background: rgba(255, 107, 53, 0.12);
+    border-radius: 8px;
+    border-left: 3px solid #ff6b35;
+    color: #ffcc00;
+    font-size: 1em;
+    font-weight: 600;
+}
+.player-inventory-detail-effect {
+    padding: 12px 14px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    border-left: 3px solid #8b5a2b;
+    color: #d4c4a8;
+    font-size: 0.95em;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.player-inventory-detail-shop {
+    font-size: 0.9em;
+    color: #8b7355;
+}
+.player-inventory-item-name:hover {
+    color: #f1c40f;
+}
+
+/* Tabla inventario (desktop) */
+.inventory-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid #4a3c31; }
+.inventory-table { width: 100%; min-width: 620px; border-collapse: collapse; font-size: 0.95em; }
+.inventory-table th, .inventory-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #4a3c31; vertical-align: middle; }
+.inventory-table th { color: #d4af37; font-family: 'Cinzel', serif; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; background: rgba(0,0,0,0.25); }
+.inventory-table .inv-sortable-th { cursor: pointer; user-select: none; white-space: nowrap; }
+.inventory-table .inv-sortable-th:hover { background: rgba(212, 175, 55, 0.15); color: #e8d48b; }
+.inventory-table .inv-sortable-th:focus { outline: 1px solid #8b5a2b; outline-offset: 2px; }
+.inventory-table .inv-sortable-th.inv-sort-active { color: #e8d48b; }
+.inventory-table .inv-th-actions { cursor: default; }
+.inventory-table tbody tr:hover { background: rgba(139, 90, 43, 0.08); }
+.inventory-table .inv-qty { text-align: center; font-weight: 600; color: #d4c4a8; min-width: 3em; }
+.inventory-table .inv-tipo { color: #a89878; font-size: 0.9em; text-transform: capitalize; }
+.inventory-table .inv-actions { white-space: nowrap; }
+.inventory-table .inv-actions .btn { margin-right: 4px; }
+.inventory-table .inv-actions .btn:last-child { margin-right: 0; }
+.inv-actions-wrap { position: relative; display: inline-flex; align-items: center; gap: 6px; }
+.inv-actions-menu-btn { min-width: 36px; padding: 6px 10px; font-size: 1.1em; line-height: 1; }
+.inv-actions-dropdown {
+    position: absolute; top: 100%; right: 0; margin-top: 4px; min-width: 160px;
+    background: linear-gradient(180deg, #2a231c 0%, #1a1612 100%); border: 1px solid #4a3c31;
+    border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,0.5); z-index: 200;
+    padding: 6px 0; display: none; left: auto;
+}
+.inv-actions-dropdown.is-open { display: block; }
+.inv-actions-dropdown button {
+    display: block; width: 100%; padding: 10px 14px; text-align: left; border: none; background: none;
+    color: #d4c4a8; font-size: 0.95em; cursor: pointer; white-space: nowrap;
+}
+.inv-actions-dropdown button:hover { background: rgba(139, 90, 43, 0.25); color: #f1c40f; }
+.inv-actions-dropdown button:first-child { border-radius: 6px 6px 0 0; }
+.inv-actions-dropdown button:last-child { border-radius: 0 0 6px 6px; }
+.inventory-card-actions .inv-actions-wrap { flex-wrap: wrap; }
+.inventory-card-actions .inv-actions-dropdown { right: 0; left: auto; }
+.inventory-table .inv-sell-qty {
+    width: 3em; margin-right: 6px; padding: 4px 6px; text-align: center;
+    background: rgba(0,0,0,0.4); border: 1px solid #4a3c31; border-radius: 4px;
+    color: #d4c4a8; font-size: 0.9em;
+}
+.inventory-table .inv-sell-qty:focus { outline: none; border-color: #8b5a2b; }
+
+/* Cards inventario (móvil) */
+.inventory-cards-wrap { display: none; overflow: visible; }
+.inventory-card {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid #4a3c31;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    overflow: visible;
+    position: relative;
+}
+.inventory-card:last-child { margin-bottom: 0; }
+.inventory-card-header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
+.inventory-card-name { color: #d4c4a8; font-weight: 600; font-size: 1.05em; }
+.inventory-card-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 0.9em; color: #a89878; margin-bottom: 8px; }
+.inventory-card-effect { color: #8b7355; font-size: 0.9em; line-height: 1.4; margin-bottom: 12px; }
+.inventory-card-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.inventory-card-actions .btn { min-height: 44px; }
+.inventory-card-actions .inv-sell-qty {
+    width: 3.5em; padding: 8px 10px; min-height: 44px; font-size: 1em;
+    background: rgba(0,0,0,0.4); border: 1px solid #4a3c31; border-radius: 4px;
+    color: #d4c4a8; text-align: center;
+}
+.inventory-card-actions .inv-sell-qty:focus { outline: none; border-color: #8b5a2b; }
+
+@media (max-width: 1200px) {
+    .player-inventory-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    .player-inventory-search-input { min-width: 0; }
+    .player-inventory-filter-row {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+    }
+    .player-inventory-filter-label { margin-bottom: 0; }
+    .player-inventory-filter-select { flex: 1; min-width: 0; width: 100%; }
+    .player-inventory-sort-row {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+    }
+    .player-inventory-sort-select {
+        width: 100%;
+        min-width: 0;
+        min-height: 44px;
+        font-size: 16px;
+    }
+    .inventory-desktop { display: none !important; }
+    .inventory-cards-wrap { display: block !important; }
+    .player-inventario-card { padding: 12px; overflow: visible; }
+    /* Menú Acciones (⋮) en tarjetas: abrir hacia arriba para no tapar la tarjeta de abajo */
+    .inventory-card-actions .inv-actions-wrap { margin-left: auto; }
+    .inventory-card-actions .inv-actions-dropdown {
+        top: auto;
+        bottom: 100%;
+        margin-top: 0;
+        margin-bottom: 4px;
+        min-width: 180px;
+        z-index: 300;
+    }
+    .inventory-card-actions .inv-actions-dropdown button {
+        padding: 12px 16px;
+        min-height: 44px;
+        font-size: 1em;
+    }
+}
+
+.player-map-section { margin-bottom: 24px; }
+.player-section-title { font-family: 'Cinzel', serif; color: #d4af37; font-size: 1.4em; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 2px; }
+.player-map-wrap { position: relative; text-align: center; background: linear-gradient(180deg, rgba(42, 42, 62, 0.9) 0%, rgba(26, 26, 46, 0.95) 100%); border: 2px solid #c9a227; border-radius: 12px; padding: 20px; margin-top: 20px; }
+.player-map-listo-float {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    z-index: 20;
+    min-width: 52px;
+    min-height: 44px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+.player-map-zoom-controls {
+    /* Ocultar botones de zoom (+ / -) en todas las vistas,
+       pero mantener la funcionalidad de zoom (rueda, gestos, etc.) */
+    display: none !important;
+}
+.player-map-zoom-controls .btn {
+    min-width: 44px;
+    min-height: 44px;
+}
+.player-map-viewport {
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px;
+    touch-action: none;
+    -ms-touch-action: none;
+    background: #2a2520;
+    min-height: 320px;
+    width: 100%;
+}
+@media (max-width: 768px) {
+    .player-map-zoom-controls {
+        justify-content: center !important;
+    }
+    .player-map-wrap {
+        padding: 12px;
+    }
+    .player-map-viewport {
+        min-height: 240px;
+        height: auto;
+    }
+    .player-map-ubicacion {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .player-map-ubicacion .player-map-ubicacion-select,
+    .player-map-module .btn {
+        width: 100%;
+        min-width: 0;
+        min-height: 44px;
+        box-sizing: border-box;
+    }
+    .player-map-viewport .player-map-marker-label {
+        display: none;
+    }
+    .player-map-viewport.is-zoomed .player-map-marker-label {
+        display: block;
+    }
+    /* En móvil: ocultar zoom y poner \"Mi ubicación\" a ancho completo, como los otros botones */
+    .player-map-below-row {
+        grid-template-columns: 1fr;
+    }
+    .player-map-below-row .player-map-ubicacion {
+        grid-column: 1;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        justify-content: center !important;
+        text-align: center;
+        width: 100%;
+    }
+    .player-map-below-row .player-map-ubicacion .player-map-ubicacion-label {
+        text-align: center;
+    }
+    .player-map-below-row .player-map-ubicacion .player-map-ubicacion-select {
+        width: 100% !important;
+        max-width: none;
+        margin-left: 0;
+        margin-right: 0;
+    }
+    .player-map-below-row .player-map-zoom-controls {
+        display: none !important;
+    }
+}
+/* En móvil: etiquetas solo al tocar el marcador, no por zoom */
+@media (max-width: 768px) {
+    .player-map-viewport.is-zoomed .player-map-marker-label {
+        display: none;
+    }
+    .player-map-marker.label-visible .player-map-marker-label {
+        display: block !important;
+    }
+}
+.player-map-stage {
+    position: relative;
+    width: 100%;
+    display: block;
+    transform-origin: 0 0;
+    cursor: grab;
+}
+.player-map-stage.is-pannable { cursor: grab; }
+.player-map-stage.is-panning { cursor: grabbing; }
+.player-map-img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    display: block;
+    margin: 0 auto;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+.player-map-markers-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+}
+.player-map-marker {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0;
+    pointer-events: auto;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    tap-highlight-color: transparent;
+}
+.player-map-marker-pin {
+    font-size: 1.4em;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.8em;
+    min-height: 1.8em;
+    padding: 2px;
+    background: rgba(26, 18, 11, 0.9);
+    border: 1px solid rgba(201, 162, 39, 0.5);
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+/* Marcador de "Mi ubicación": resaltado cuando el jugador elige esa ciudad */
+.player-map-marker--my-location .player-map-marker-pin {
+    background: rgba(80, 35, 35, 0.95);
+    border: 2px solid #c62828;
+    box-shadow: 0 2px 8px rgba(198, 40, 40, 0.6);
+}
+.player-map-marker--my-location .player-map-marker-label {
+    border-color: rgba(198, 40, 40, 0.8);
+    color: #ef9a9a;
+}
+/* Marcadores en móvil: diseño refinado, minimal, legible */
+@media (max-width: 768px) {
+    .player-map-marker-pin {
+        font-size: 0.7rem;
+        min-width: 1.15rem;
+        min-height: 1.15rem;
+        padding: 2px;
+        background: rgba(20, 16, 12, 0.92);
+        border: 1px solid rgba(201, 162, 39, 0.4);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    }
+    .player-map-viewport .player-map-marker-label {
+        font-size: 0.4rem;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        padding: 2px 5px;
+        margin-top: 3px;
+        border-radius: 6px;
+        background: rgba(15, 12, 10, 0.88);
+        border: 1px solid rgba(201, 162, 39, 0.35);
+        color: #e8d8a8;
+        white-space: nowrap;
+    }
+}
+@media (max-width: 480px) {
+    .player-map-marker-pin {
+        font-size: 0.6rem;
+        min-width: 1rem;
+        min-height: 1rem;
+        padding: 2px;
+        background: rgba(20, 16, 12, 0.92);
+        border: 1px solid rgba(201, 162, 39, 0.4);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    }
+    .player-map-viewport .player-map-marker-label {
+        font-size: 0.35rem;
+        font-weight: 500;
+        letter-spacing: 0.03em;
+        padding: 2px 4px;
+        margin-top: 2px;
+        border-radius: 4px;
+        background: rgba(15, 12, 10, 0.9);
+        border: 1px solid rgba(201, 162, 39, 0.3);
+        color: #e8d8a8;
+        white-space: nowrap;
+    }
+}
+.player-map-marker-label {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 4px;
+    font-size: 0.75em;
+    color: #f4e4b8;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(201,162,39,0.6);
+    padding: 2px 6px;
+    border-radius: 8px;
+    white-space: nowrap;
+}
+.player-map-markers {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+.player-map-markers-section {
+    padding: 18px 20px;
+    border-radius: 10px;
+    border: 1px solid rgba(201,162,39,0.3);
+    background: rgba(10, 10, 16, 0.6);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+    text-align: center;
+}
+.player-map-markers-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1em;
+    color: #d4af37;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0 0 4px 0;
+}
+.player-map-markers-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+}
+.player-map-markers-row.player-map-markers-row--spaced {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(201,162,39,0.2);
+}
+.player-map-markers-subtitle {
+    margin: 0;
+    font-size: 0.95em;
+    color: #d4af37;
+    font-family: 'Cinzel', serif;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    min-width: 6em;
+}
+.player-map-markers .player-map-ubicacion-select {
+    min-width: 140px;
+    flex: 0 1 auto;
+    max-width: 220px;
+}
+.player-map-markers-hint {
+    color: #8b7355;
+    font-size: 0.85em;
+    margin: 12px 0 0 0;
+    line-height: 1.4;
+    text-align: center;
+    max-width: 100%;
+}
+.player-map-markers-section + .player-map-markers-hint {
+    margin-top: 4px;
+}
+@media (max-width: 768px) {
+    .player-map-markers .player-map-markers-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    .player-map-markers .player-map-ubicacion-select,
+    .player-map-markers .player-map-input,
+    .player-map-markers .player-map-icon-select,
+    .player-map-markers .btn {
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+        box-sizing: border-box;
+    }
+}
+.player-map-input {
+    flex: 1;
+    min-width: 180px;
+    padding: 10px 14px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid #5c4023;
+    border-radius: 8px;
+    color: #e5ddd4;
+    font-size: 1em;
+}
+.player-map-input:focus {
+    outline: none;
+    border-color: #c9a227;
+}
+.player-map-icon-select {
+    min-width: 150px;
+    max-width: 220px;
+}
+/* Fila debajo del mapa: solo \"Mi ubicación\", centrado bajo el mapa */
+.player-map-below-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* En escritorio: alineado a la izquierda */
+    gap: 12px;
+    margin-top: 12px;
+}
+.player-map-below-row .player-map-ubicacion {
+    margin-top: 0;
+    justify-content: flex-start;
+}
+.player-map-ubicacion {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+.player-map-module {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 8px;
+}
+.player-map-module .player-map-rutas-dropdown,
+.player-map-module .player-map-markers {
+    margin-top: 8px;
+}
+/* Botones Rutas y Bitácora: estilo mapa (dorado/marrón) */
+.player-map-rutas-toggle,
+.player-map-bitacora-toggle {
+    flex-shrink: 0;
+    font-family: 'Cinzel', serif;
+    font-size: 0.95em;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    padding: 12px 18px;
+    min-height: 44px;
+    border-radius: 8px;
+    border: 1px solid #5a4a3a;
+    background: linear-gradient(180deg, #2a2522 0%, #1e1b18 100%);
+    color: #d4af37;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+.player-map-rutas-toggle:hover,
+.player-map-bitacora-toggle:hover {
+    border-color: #8b5a2b;
+    background: linear-gradient(180deg, #352f2a 0%, #2a2522 100%);
+    color: #f4e4b8;
+}
+.player-map-rutas-toggle.open,
+.player-map-bitacora-toggle.open {
+    border-color: #c9a227;
+    background: linear-gradient(180deg, #3d3528 0%, #2a2518 100%);
+    color: #f4e4b8;
+    box-shadow: 0 0 12px rgba(201, 162, 39, 0.25);
+}
+.player-map-ubicacion-label {
+    font-family: 'Cinzel', serif;
+    color: #d4af37;
+    font-size: 1em;
+}
+.player-map-ubicacion-select {
+    min-width: 220px;
+    padding: 10px 14px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid #5c4023;
+    border-radius: 8px;
+    color: #e5ddd4;
+    font-size: 1em;
+}
+/* Centrar texto del dropdown "Mi ubicación" debajo del mapa */
+.player-map-ubicacion .player-map-ubicacion-select {
+    text-align: center;
+}
+.player-map-ubicacion-select:focus {
+    outline: none;
+    border-color: #c9a227;
+}
+
+/* Rutas conocidas (vista jugador, panel desplegable) */
+.player-map-rutas,
+.player-map-rutas-dropdown {
+    margin-top: 16px;
+    padding: 24px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(30, 28, 24, 0.95) 0%, rgba(22, 20, 18, 0.98) 100%);
+    border: 1px solid #5a4a3a;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+}
+.player-map-rutas-title {
+    font-family: 'Cinzel', serif;
+    color: #d4af37;
+    font-size: 1.2em;
+    margin: 0 0 10px 0;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+.player-map-rutas-desc {
+    color: #8b7355;
+    font-size: 0.9em;
+    margin: 0 0 24px 0;
+    line-height: 1.5;
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.player-map-rutas-form {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 18px 24px;
+    margin-bottom: 24px;
+}
+.player-map-rutas-form label {
+    color: #a89878;
+    font-size: 0.9em;
+    display: block;
+    margin-bottom: 6px;
+    text-align: center;
+}
+.player-map-rutas-form .player-ruta-field {
+    min-width: 160px;
+    max-width: 220px;
+    flex: 1 1 160px;
+}
+.player-ruta-select {
+    padding: 12px 14px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid #4a3c31;
+    border-radius: 8px;
+    color: #e5ddd4;
+    font-size: 1em;
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+}
+.player-ruta-select:focus {
+    outline: none;
+    border-color: #8b5a2b;
+}
+.player-map-rutas-result {
+    padding: 18px 20px;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 10px;
+    color: #8b7355;
+    font-style: italic;
+    border: 1px solid rgba(74, 60, 49, 0.6);
+    text-align: center;
+    line-height: 1.5;
+}
+.player-map-rutas-result-ok {
+    color: #c9a227;
+    font-style: normal;
+    border: 1px solid rgba(201, 162, 39, 0.5);
+    background: rgba(201, 162, 39, 0.08);
+}
+.player-map-rutas-noches {
+    margin: 0;
+    font-size: 1.05em;
+}
+.player-map-rutas-msg {
+    color: #8b7355;
+    font-style: italic;
+    margin: 0;
+}
+.player-map-ruta-item {
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(74, 60, 49, 0.5);
+    border-radius: 8px;
+    color: #e5ddd4;
+    font-size: 0.95em;
+}
+.player-empezar-viaje-btn {
+    margin-top: 16px;
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: 1px solid #5a4a3a;
+    background: linear-gradient(180deg, #2a2522 0%, #1e1b18 100%);
+    color: #d4af37;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+.player-empezar-viaje-btn:hover {
+    border-color: #8b5a2b;
+    background: linear-gradient(180deg, #352f2a 0%, #2a2522 100%);
+    color: #f4e4b8;
+}
+
+/* Bitácora de viaje (jugador) */
+.player-map-bitacora {
+    margin-top: 16px;
+    padding: 24px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(30, 28, 24, 0.95) 0%, rgba(22, 20, 18, 0.98) 100%);
+    border: 1px solid #5a4a3a;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    box-sizing: border-box;
+}
+.player-bitacora-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.player-bitacora-viaje {
+    padding: 18px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(74, 60, 49, 0.5);
+    border-radius: 10px;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+.player-bitacora-viaje:hover {
+    border-color: rgba(139, 90, 43, 0.6);
+    background: rgba(0, 0, 0, 0.35);
+}
+.player-bitacora-header-toggle {
+    cursor: pointer;
+    user-select: none;
+}
+.player-bitacora-header-toggle:hover {
+    opacity: 0.9;
+}
+.player-bitacora-viaje-chevron {
+    display: inline-block;
+    width: 1.2em;
+    font-size: 0.75em;
+    color: #a89878;
+    margin-right: 4px;
+}
+.player-bitacora-viaje-collapsed .player-bitacora-notas {
+    display: none;
+}
+.player-bitacora-viaje-collapsed .player-bitacora-header {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+.player-bitacora-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 20px;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #4a3c31;
+}
+.player-bitacora-ruta {
+    font-weight: 600;
+    color: #e5ddd4;
+    font-size: 1.05em;
+}
+.player-bitacora-duracion {
+    color: #a89878;
+    font-size: 0.95em;
+}
+.player-bitacora-fecha {
+    color: #8b7355;
+    font-size: 0.9em;
+}
+.player-bitacora-delete-btn {
+    margin-left: auto;
+    opacity: 0.85;
+}
+.player-bitacora-delete-btn:hover {
+    opacity: 1;
+}
+.player-bitacora-notas {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.player-bitacora-noche {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.player-bitacora-noche-label {
+    font-size: 0.9em;
+    color: #a89878;
+}
+.player-bitacora-note-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+.player-bitacora-note-preview {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 10px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid #4a3c31;
+    border-radius: 6px;
+    color: #e5ddd4;
+    font-size: 0.9em;
+    white-space: pre-wrap;
+    word-break: break-word;
+    min-height: 2.5em;
+}
+.player-bitacora-nota {
+    padding: 10px 12px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid #4a3c31;
+    border-radius: 6px;
+    color: #e5ddd4;
+    font-size: 0.95em;
+    resize: vertical;
+    min-height: 60px;
+}
+.player-bitacora-nota:focus {
+    outline: none;
+    border-color: #8b5a2b;
+}
+@media (max-width: 768px) {
+    .player-map-bitacora {
+        padding: 16px;
+    }
+    .player-bitacora-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    .player-bitacora-delete-btn {
+        margin-left: 0;
+        align-self: flex-end;
+    }
+}
+
+/* Rutas conocidas (DM: lista) */
+.dm-map-rutas-section {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #4a3c31;
+}
+.dm-rutas-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.dm-ruta-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid #4a3c31;
+    border-radius: 8px;
+}
+.dm-ruta-route {
+    flex: 1;
+    min-width: 180px;
+    color: #e5ddd4;
+    font-weight: 600;
+}
+.dm-ruta-medio {
+    color: #a89878;
+    font-size: 0.95em;
+}
+.dm-ruta-duracion {
+    color: #a89878;
+    font-size: 0.95em;
+}
+.dm-ruta-noches {
+    color: #8b7355;
+    font-size: 0.9em;
+}
+.dm-ruta-actions {
+    display: flex;
+    gap: 6px;
+}
+
+/* Tienda de pociones (vista personaje) */
+.player-potion-products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; max-height: 380px; overflow-y: auto; }
+.player-potion-product-card {
+    background: rgba(255,255,255,0.05); border-radius: 10px; padding: 14px; border: 2px solid transparent;
+    transition: all 0.2s; cursor: default;
+}
+.player-potion-product-card:hover { border-color: rgba(155,89,182,0.5); }
+.player-potion-product-card.común { border-color: rgba(46,204,113,0.4); }
+.player-potion-product-card.inusual,
+.player-potion-product-card.infrecuente { border-color: rgba(52,152,219,0.4); }
+.player-potion-product-card.rara { border-color: rgba(155,89,182,0.4); }
+.player-potion-product-card.legendaria { border-color: rgba(231,76,60,0.4); }
+.player-potion-product-name { font-weight: 600; margin-bottom: 6px; font-size: 1em; }
+.player-potion-product-rarity { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.7em; text-transform: uppercase; margin-bottom: 8px; }
+.player-potion-product-effect-label { margin-top: 6px; }
+.player-potion-product-effect { color: #a89878; font-size: 0.9em; margin-bottom: 8px; line-height: 1.3; min-height: 1.4em; }
+.player-potion-product-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+.player-potion-cart-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 8px; }
+.player-potion-cart-item-name { font-size: 0.9em; }
+.player-potion-cart-item-price { color: #f1c40f; font-size: 0.8em; }
+.player-potion-cart-total-row { display: flex; justify-content: space-between; margin-bottom: 6px; padding-top: 10px; border-top: 1px solid rgba(255,215,0,0.2); }
+.player-potion-checkout-btn { width: 100%; margin-top: 12px; }
+
+/* Directorio de Comercios (estilo Mistfall) - mismo ancho que el resto de la app */
+.player-mistfall-page,
+#player-directorio-wrap { position: relative; z-index: 2; width: 100%; max-width: 100%; padding: 20px 0; box-sizing: border-box; }
+.player-mistfall-header { text-align: center; padding: 30px 20px; }
+.player-mistfall-emblem { font-size: 3em; margin-bottom: 10px; filter: drop-shadow(0 0 20px rgba(200,170,130,0.5)); }
+.player-mistfall-h1 {
+    font-family: 'Cinzel', serif; font-size: 2.2em; color: #c9a868;
+    text-shadow: 0 0 10px rgba(201,168,104,0.5), 0 4px 8px rgba(0,0,0,0.8);
+    letter-spacing: 6px; margin-bottom: 10px;
+}
+.player-mistfall-subtitle { font-family: 'Cinzel', serif; color: #8a7a6a; font-size: 1.1em; letter-spacing: 4px; text-transform: uppercase; }
+.player-mistfall-divider { display: flex; align-items: center; justify-content: center; margin: 24px 0; gap: 16px; }
+.player-mistfall-divider-line { height: 2px; width: 80px; background: linear-gradient(90deg, transparent, #5a4a3a, transparent); }
+.player-mistfall-divider-icon { color: #c9a868; font-size: 1.2em; }
+.player-mistfall-section-title {
+    font-family: 'Cinzel', serif; text-align: center; color: #8a7a6a; font-size: 1.2em;
+    letter-spacing: 4px; text-transform: uppercase; margin-bottom: 24px;
+}
+/* Botones del directorio: diseño fijo para que no pierdan estilo al entrar en ciudad */
+.player-directorio-tabs .player-directorio-tab {
+    font-family: 'Cinzel', serif;
+    font-size: 0.95em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 12px 20px;
+    min-height: 44px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid #8b5a2b;
+    background: linear-gradient(180deg, #2a2522 0%, #1e1b18 100%);
+    color: #d4af37;
+}
+.player-directorio-tabs .player-directorio-tab:hover {
+    background: linear-gradient(180deg, #352f2a 0%, #2a2522 100%);
+}
+.player-directorio-tabs .player-directorio-tab.active {
+    border-color: #8b5a2b;
+    color: #d4af37;
+    background: linear-gradient(180deg, #8b5a2b 0%, #6b4423 100%);
+    box-shadow: 0 0 8px rgba(139, 90, 43, 0.35);
+}
+.player-directorio-tabs .player-directorio-tab.active:hover {
+    background: linear-gradient(180deg, #a06830 0%, #8b5a2b 100%);
+}
+.player-directorio-panel { min-height: 120px; }
+.player-mistfall-shops-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+.player-mistfall-shop-card {
+    display: flex; align-items: center; gap: 18px; padding: 22px;
+    background: linear-gradient(135deg, rgba(25,20,15,0.9), rgba(15,12,8,0.95));
+    border: 2px solid #3a2a1a; border-radius: 4px;
+    cursor: pointer; text-decoration: none; color: inherit; transition: all 0.3s;
+}
+.player-mistfall-shop-card:hover {
+    border-color: var(--shop-accent, #c9a868);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4), 0 0 20px var(--shop-glow, rgba(201,168,104,0.2));
+}
+.player-mistfall-shop-icon { font-size: 2.2em; width: 54px; text-align: center; }
+.player-mistfall-shop-info { flex: 1; }
+.player-mistfall-shop-name { font-family: 'Cinzel', serif; font-size: 1.15em; color: var(--shop-accent, #c9a868); margin-bottom: 6px; word-wrap: break-word; overflow-wrap: break-word; }
+.player-mistfall-shop-desc { color: #7a6a5a; font-size: 0.9em; font-style: italic; word-wrap: break-word; overflow-wrap: break-word; }
+.player-mistfall-shop-enter { font-family: 'Cinzel', serif; color: #c9a868; font-size: 0.85em; letter-spacing: 2px; margin-top: 10px; opacity: 0.8; }
+.player-mistfall-shop-card:hover .player-mistfall-shop-enter { opacity: 1; }
+.player-traveling-shop-blocked { opacity: 0.85; cursor: not-allowed; }
+.player-traveling-shop-blocked:hover { transform: none; border-color: #3a2a1a; }
+/* Colores por tipo de tienda */
+.player-mistfall-shop-pociones { --shop-accent: #9b7bb8; --shop-glow: rgba(155,123,184,0.3); }
+.player-mistfall-shop-herreria { --shop-accent: #c87941; --shop-glow: rgba(200,121,65,0.3); }
+.player-mistfall-shop-taberna { --shop-accent: #8b7355; --shop-glow: rgba(139,115,85,0.3); }
+.player-mistfall-shop-biblioteca { --shop-accent: #5b8abd; --shop-glow: rgba(91,138,189,0.3); }
+.player-mistfall-shop-arqueria { --shop-accent: #7a9b5a; --shop-glow: rgba(122,155,90,0.3); }
+.player-mistfall-shop-emporio { --shop-accent: #6a7a8a; --shop-glow: rgba(106,122,138,0.3); }
+.player-mistfall-shop-batalla { --shop-accent: #c94c4c; --shop-glow: rgba(201,76,76,0.3); }
+.player-mistfall-shop-santuario { --shop-accent: #a89bb8; --shop-glow: rgba(168,155,184,0.3); }
+.player-mistfall-shop-banco { --shop-accent: #5a8a5a; --shop-glow: rgba(90,138,90,0.3); }
+.player-mistfall-shop-posada { --shop-accent: #8b7355; --shop-glow: rgba(139,115,85,0.3); }
+.player-mistfall-shop-habitantes { --shop-accent: #9a8b6a; --shop-glow: rgba(154,139,106,0.3); }
+
+/* Establecimiento recomendado: doble ancho + placa + contenido centrado */
+.player-mistfall-shop-recomendado { grid-column: 1 / -1; position: relative; padding-top: 44px; justify-content: center; }
+.player-mistfall-shop-recomendado .player-mistfall-shop-icon { text-align: center; flex-shrink: 0; }
+.player-mistfall-shop-recomendado .player-mistfall-shop-info { text-align: center; flex: 0 1 auto; }
+.player-mistfall-recomendado-placa {
+    position: absolute; top: 0; left: 0; right: 0;
+    width: 100%; box-sizing: border-box; display: block;
+    font-family: 'Cinzel', serif; font-size: 0.75em; letter-spacing: 3px; text-transform: uppercase;
+    text-align: center; padding: 10px 12px; background: linear-gradient(90deg, transparent, rgba(212,175,55,0.25), transparent);
+    color: #d4af37; border-bottom: 1px solid rgba(212,175,55,0.4); border-radius: 4px 4px 0 0;
+}
+
+/* Directorio NPCs (vista personaje) */
+.player-mistfall-npcs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+.player-mistfall-npc-card {
+    display: flex; align-items: center; gap: 18px; padding: 20px;
+    background: linear-gradient(135deg, rgba(25,20,15,0.9), rgba(15,12,8,0.95));
+    border: 2px solid #3a2a1a; border-radius: 4px;
+    transition: all 0.3s;
+}
+.player-mistfall-npc-card:hover { border-color: #8b7355; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+.player-mistfall-npc-card-colored {
+    padding: 20px;
+    border: 2px solid;
+    border-radius: 8px;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+}
+.player-mistfall-npc-card-colored:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    border-width: 3px;
+}
+.player-mistfall-npc-icon { font-size: 2em; width: 54px; text-align: center; }
+.player-mistfall-npc-info { flex: 1; }
+.player-mistfall-npc-name { font-family: 'Cinzel', serif; font-size: 1.1em; color: #f4d03f; margin-bottom: 6px; font-weight: 600; word-wrap: break-word; overflow-wrap: break-word; }
+.player-mistfall-npc-rol { color: #d4c4a8; font-size: 0.9em; font-style: italic; margin-bottom: 8px; word-wrap: break-word; overflow-wrap: break-word; }
+.player-mistfall-npc-notes-section { margin-top: 12px; }
+.player-mistfall-npc-notes-input {
+    width: 100%;
+    min-height: 60px;
+    padding: 8px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 4px;
+    color: #d4c4a8;
+    font-family: inherit;
+    font-size: 0.9em;
+    resize: vertical;
+}
+.player-mistfall-npc-notes-input:focus {
+    outline: none;
+    border-color: rgba(255,255,255,0.3);
+    background: rgba(0,0,0,0.4);
+}
+
+/* Artesanías (estilo Klicklac) */
+.player-artesanias-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; max-height: 55vh; overflow-y: auto; }
+.player-artesanias-cat-title { grid-column: 1 / -1; font-size: 1.2em; color: #aed581; padding: 12px 0 8px 0; border-bottom: 2px solid rgba(174,213,129,0.3); margin-bottom: 10px; }
+.player-artesanias-card { background: linear-gradient(135deg, rgba(61,92,61,0.4), rgba(10,21,10,0.6)); border-radius: 12px; padding: 18px; border: 2px solid #3d5c3d; transition: all 0.3s; }
+.player-artesanias-card:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(124,179,66,0.2); border-color: #4a7c4a; }
+.player-artesanias-card.player-artesanias-common { border-left: 4px solid #78909c; }
+.player-artesanias-card.player-artesanias-magic { border-left: 4px solid #7e57c2; }
+.player-artesanias-card.player-artesanias-elemental { border-left: 4px solid #ef5350; }
+.player-artesanias-card.player-artesanias-gear { border-left: 4px solid #5c6bc0; }
+.player-artesanias-card.player-artesanias-service { border-left: 4px solid #ffb74d; }
+.player-artesanias-card-name { font-size: 1.05em; font-weight: 600; margin-bottom: 8px; color: #c5e1a5; }
+.player-artesanias-type { display: inline-block; padding: 3px 10px; border-radius: 10px; font-size: 0.75em; margin-bottom: 10px; font-weight: 600; }
+.player-artesanias-common .player-artesanias-type { background: #78909c; color: #fff; }
+.player-artesanias-magic .player-artesanias-type { background: #7e57c2; color: #fff; }
+.player-artesanias-elemental .player-artesanias-type { background: #ef5350; color: #fff; }
+.player-artesanias-gear .player-artesanias-type { background: #5c6bc0; color: #fff; }
+.player-artesanias-service .player-artesanias-type { background: #ffb74d; color: #1a2a1a; }
+.player-artesanias-effect-box { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 10px; padding: 8px 12px; background: rgba(124,179,66,0.15); border-radius: 8px; border-left: 3px solid #7cb342; font-size: 0.9em; color: #aed581; min-height: 2em; line-height: 1.3; }
+.player-artesanias-desc { color: #81c784; font-size: 0.85em; margin-bottom: 12px; font-style: italic; }
+.player-artesanias-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+.player-artesanias-price { font-weight: bold; color: #aed581; }
+.player-artesanias-cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(61,92,61,0.3); border-radius: 8px; margin-bottom: 10px; border: 1px solid #3d5c3d; }
+.player-artesanias-cart-name { font-size: 0.95em; margin-bottom: 3px; color: #c5e1a5; }
+.player-artesanias-cart-price { color: #aed581; font-size: 0.85em; }
+.player-artesanias-no-results { text-align: center; color: #81c784; padding: 32px; grid-column: 1 / -1; }
+
+/* Emporio (materiales hechizos, raros, mapas, otros) */
+.player-emporio-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; max-height: 55vh; overflow-y: auto; }
+.player-emporio-cat-title { grid-column: 1 / -1; font-size: 1.2em; color: #9ca8b8; padding: 12px 0 8px 0; border-bottom: 2px solid rgba(106,122,138,0.4); margin-bottom: 10px; }
+.player-emporio-card { background: linear-gradient(135deg, rgba(40,45,55,0.5), rgba(25,30,40,0.7)); border-radius: 12px; padding: 16px; border: 2px solid #5a6a7a; transition: all 0.3s; }
+.player-emporio-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(106,122,138,0.25); border-color: #6a7a8a; }
+.player-emporio-card-name { font-size: 1.05em; font-weight: 600; margin-bottom: 8px; color: #e0e8f0; }
+.player-emporio-rarity { display: inline-block; margin-bottom: 8px; }
+.player-emporio-effect-box { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 10px; padding: 8px 12px; background: rgba(106,122,138,0.2); border-radius: 8px; border-left: 3px solid #6a7a8a; font-size: 0.9em; color: #b8c8d8; min-height: 2em; line-height: 1.3; }
+.player-emporio-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+.player-emporio-price { font-weight: bold; color: #9ca8b8; }
+.player-emporio-add-btn { background: linear-gradient(135deg, #5a6a7a, #4a5a6a); color: #e8eef4; border: 1px solid #6a7a8a; }
+.player-emporio-add-btn:hover { background: linear-gradient(135deg, #6a7a8a, #5a6a7a); }
+.player-emporio-cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(50,55,65,0.4); border-radius: 8px; margin-bottom: 10px; border: 1px solid #5a6a7a; }
+.player-emporio-cart-name { font-size: 0.95em; margin-bottom: 3px; color: #c0d0e0; }
+.player-emporio-cart-price { color: #9ca8b8; font-size: 0.85em; }
+.player-emporio-no-results { text-align: center; color: #8a9aa8; padding: 32px; grid-column: 1 / -1; }
+
+/* Forja (estilo Grimm) */
+.player-forge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; max-height: 55vh; overflow-y: auto; }
+.player-forge-cat-title { grid-column: 1 / -1; font-size: 1.2em; color: #ffcc00; padding: 12px 0 8px 0; border-bottom: 2px solid rgba(255,204,0,0.3); margin-bottom: 10px; }
+.player-forge-card { background: linear-gradient(135deg, rgba(92,58,33,0.4), rgba(26,10,10,0.6)); border-radius: 12px; padding: 18px; border: 2px solid #5c3a21; transition: all 0.3s; }
+.player-forge-card:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(255,107,53,0.2); }
+.player-forge-card.tier-1 { border-left: 4px solid #c0c0c0; }
+.player-forge-card.tier-6 { border-left: 4px solid #6bb3ff; }
+.player-forge-card.tier-11 { border-left: 4px solid #bb77dd; }
+.player-forge-card.tier-16 { border-left: 4px solid #ff6b35; }
+.player-forge-card-name { font-size: 1.05em; font-weight: 600; margin-bottom: 8px; color: #f0e6d3; }
+.player-forge-tier { display: inline-block; padding: 3px 10px; border-radius: 10px; font-size: 0.75em; margin-bottom: 10px; font-weight: 600; }
+.player-forge-tipo-tier { color: #a89070; font-size: 0.9em; margin-bottom: 8px; }
+.player-forge-card.tier-1 .player-forge-tier { background: #c0c0c0; color: #1a0a0a; }
+.player-forge-card.tier-6 .player-forge-tier { background: #6bb3ff; color: #1a0a0a; }
+.player-forge-card.tier-11 .player-forge-tier { background: #bb77dd; color: #1a0a0a; }
+.player-forge-card.tier-16 .player-forge-tier { background: #ff6b35; color: #1a0a0a; }
+.player-forge-damage-info { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; padding: 8px 12px; background: rgba(255,107,53,0.15); border-radius: 8px; border-left: 3px solid #ff6b35; font-size: 0.9em; color: #ffcc00; }
+.player-forge-desc-label { margin-top: 4px; }
+.player-forge-desc { color: #a89070; font-size: 0.9em; margin-bottom: 12px; min-height: 1.4em; }
+.player-forge-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+.player-forge-price { font-weight: bold; color: #ffcc00; }
+.player-forge-cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(92,58,33,0.3); border-radius: 8px; margin-bottom: 10px; border: 1px solid #5c3a21; }
+.player-forge-cart-name { font-size: 0.95em; margin-bottom: 3px; color: #f0e6d3; }
+.player-forge-cart-price { color: #ffcc00; font-size: 0.85em; }
+.player-forge-no-results { text-align: center; color: #8b7355; padding: 32px; grid-column: 1 / -1; }
+
+/* Biblioteca (tabs por sección, carrito, recibo) */
+.player-biblio-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; max-height: 55vh; overflow-y: auto; }
+.player-biblio-card { background: linear-gradient(135deg, rgba(50,30,60,0.6), rgba(30,20,40,0.8)); border-radius: 10px; padding: 18px; border: 2px solid #4a3a5a; transition: all 0.3s; position: relative; overflow: hidden; }
+.player-biblio-card::before { content: ""; position: absolute; top: 0; left: 0; width: 5px; height: 100%; background: var(--biblio-color, #8a6a9a); }
+.player-biblio-card:hover { border-color: var(--biblio-color, #8a6a9a); transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+.player-biblio-magic { --biblio-color: #7b68ee; }
+.player-biblio-craft { --biblio-color: #cd853f; }
+.player-biblio-cooking { --biblio-color: #e9967a; }
+.player-biblio-traps { --biblio-color: #708090; }
+.player-biblio-alchemy { --biblio-color: #32cd32; }
+.player-biblio-maps { --biblio-color: #daa520; }
+.player-biblio-restricted { --biblio-color: #dc143c; }
+.player-biblio-title { font-family: 'Cinzel', serif; font-size: 1.05em; color: #e0d0e8; margin-bottom: 10px; }
+.player-biblio-details { display: flex; flex-direction: column; gap: 6px; }
+.player-biblio-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; }
+.player-biblio-label { color: #8a7a9a; }
+.player-biblio-value { color: #c9b0d0; font-weight: 500; }
+.player-biblio-effect { background: rgba(200,160,220,0.1); border-radius: 5px; padding: 10px; margin-top: 10px; border-left: 3px solid var(--biblio-color, #8a6a9a); min-height: 2.5em; }
+.player-biblio-ef-label { color: #a090a8; font-size: 0.8em; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+.player-biblio-ef-text { color: #d0c0e0; font-size: 0.95em; line-height: 1.3; }
+.player-biblio-add-btn { margin-top: 12px; width: 100%; }
+.player-biblio-add-btn.added { background: rgba(50,150,50,0.3); border-color: #5a9a5a; color: #8fbc8f; }
+.player-biblio-no-results { text-align: center; color: #8a7a9a; padding: 32px; }
+.player-biblio-cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(80,50,100,0.2); border-radius: 8px; margin-bottom: 10px; border-left: 3px solid #7b68ee; }
+.player-biblio-cart-name { font-size: 0.95em; margin-bottom: 3px; color: #e0d0e8; }
+.player-biblio-cart-price { color: #daa520; font-size: 0.85em; }
+/* Recibo Biblioteca */
+.player-biblio-receipt { background: #f5f0e6; color: #2a2020; padding: 30px; border-radius: 5px; font-family: 'Courier New', monospace; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
+.player-biblio-receipt-header { text-align: center; border-bottom: 2px dashed #8a7a6a; padding-bottom: 15px; margin-bottom: 15px; }
+.player-biblio-receipt-logo { font-size: 2.5em; margin-bottom: 5px; }
+.player-biblio-receipt-title { font-size: 1.3em; font-weight: bold; color: #4a3a5a; letter-spacing: 2px; }
+.player-biblio-receipt-subtitle { font-size: 0.85em; color: #6a5a5a; margin-top: 5px; }
+.player-biblio-receipt-body { margin: 15px 0; }
+.player-biblio-receipt-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dotted #c0b0a0; }
+.player-biblio-receipt-item-name { flex: 1; color: #3a3030; }
+.player-biblio-receipt-item-price { color: #5a4a3a; font-weight: bold; }
+.player-biblio-receipt-total { display: flex; justify-content: space-between; padding: 15px 0; border-top: 2px solid #8a7a6a; margin-top: 10px; font-size: 1.2em; font-weight: bold; }
+.player-biblio-receipt-total-label { color: #4a3a5a; }
+.player-biblio-receipt-total-value { color: #8b4513; }
+.player-biblio-receipt-footer { text-align: center; margin-top: 20px; padding-top: 15px; border-top: 2px dashed #8a7a6a; }
+.player-biblio-receipt-warning { background: #fff3cd; border: 2px solid #d4a020; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+.player-biblio-receipt-warning-icon { font-size: 1.5em; }
+.player-biblio-receipt-warning-text { font-size: 0.9em; color: #6a5a00; margin-top: 5px; font-weight: bold; }
+.player-biblio-receipt-date { font-size: 0.8em; color: #7a6a6a; }
+.player-biblio-receipt-thanks { font-size: 0.9em; color: #5a4a5a; margin-top: 10px; font-style: italic; }
+.player-biblio-receipt-close { width: 100%; margin-top: 20px; padding: 12px; background: #4a3a5a; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+.player-biblio-receipt-close:hover { background: #6a5a7a; }
+
+/* Recibo genérico para tiendas (pociones, taberna, forja, artesanías) */
+.player-shop-receipt { background: #f5f0e6; color: #2a2020; padding: 30px; border-radius: 8px; font-family: 'Courier New', monospace; box-shadow: 0 5px 20px rgba(0,0,0,0.3); max-width: 520px; margin: 0 auto; }
+.player-shop-receipt-header { text-align: center; border-bottom: 2px dashed #8a7a6a; padding-bottom: 15px; margin-bottom: 15px; }
+.player-shop-receipt-logo { font-size: 2.5em; margin-bottom: 5px; }
+.player-shop-receipt-title { font-size: 1.2em; font-weight: bold; color: #3a3020; letter-spacing: 2px; }
+.player-shop-receipt-subtitle { font-size: 0.85em; color: #6a5a5a; margin-top: 5px; }
+.player-shop-receipt-body { margin: 15px 0; }
+.player-shop-receipt-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dotted #c0b0a0; }
+.player-shop-receipt-item-name { flex: 1; color: #3a3030; }
+.player-shop-receipt-item-price { color: #5a4a3a; font-weight: bold; }
+.player-shop-receipt-total { display: flex; justify-content: space-between; padding: 15px 0; border-top: 2px solid #8a7a6a; margin-top: 10px; font-size: 1.2em; font-weight: bold; }
+.player-shop-receipt-total-label { color: #3a3020; }
+.player-shop-receipt-value { color: #8b4513; }
+.player-shop-receipt-footer { text-align: center; margin-top: 20px; padding-top: 15px; border-top: 2px dashed #8a7a6a; }
+.player-shop-receipt-date { font-size: 0.8em; color: #7a6a6a; }
+.player-shop-receipt-thanks { font-size: 0.9em; color: #5a4a5a; margin-top: 10px; font-style: italic; }
+.player-shop-receipt-close { width: 100%; margin-top: 20px; padding: 12px; background: #4a3a3a; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-family: inherit; }
+.player-shop-receipt-close:hover { background: #6a5a5a; }
+
+/* Búsqueda y filtros unificados en todas las tiendas */
+.player-shop-search-wrap {
+    display: block !important;
+    margin-bottom: 16px;
+    visibility: visible !important;
+}
+/* Ocultar búsqueda y filtros cuando el usuario está viendo el carrito */
+.player-shop-viewing-cart .player-shop-search-wrap {
+    display: none !important;
+}
+/* Botón "Búsqueda y filtros" más reconocible: destaca en todas las tiendas */
+.player-shop-search-toggle {
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 18px;
+    background: linear-gradient(180deg, #2a2520 0%, #1a1612 100%);
+    border: 2px solid #8b7355;
+    border-radius: 8px;
+    color: #e8dcc8;
+    font-family: 'Cinzel', serif;
+    font-size: 1.05em;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    visibility: visible !important;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.player-shop-search-toggle:hover {
+    border-color: #c9a227;
+    background: linear-gradient(180deg, #352e26 0%, #252018 100%);
+    box-shadow: 0 2px 12px rgba(201, 162, 39, 0.2);
+}
+.player-shop-search-wrap .player-shop-search-row {
+    display: none;
+    margin-bottom: 0;
+    padding: 12px;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid #4a3c31;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+}
+.player-shop-search-wrap.expanded .player-shop-search-toggle {
+    border-radius: 6px 6px 0 0;
+    border-bottom-color: transparent;
+}
+.player-shop-search-wrap.expanded .player-shop-search-row {
+    display: block;
+}
+/* Modal Análisis de objetos: fila de búsqueda en flex (nombre + rareza lado a lado) solo cuando está expandido */
+#player-analisis-objetos-search-wrap.expanded .player-analisis-search-row {
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-end;
+}
+/* Filtros (TODAS, COMÚN, pestañas, etc.) dentro del wrap: ocultos por defecto, visibles al expandir */
+.player-shop-search-wrap .player-shop-filters {
+    display: none;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #4a3c31;
+}
+.player-shop-search-wrap.expanded .player-shop-filters {
+    display: flex;
+}
+/* Forja: "Nivel del grupo" también oculto hasta que se expanda (override de media query en móvil) */
+.player-shop-search-wrap:not(.expanded) .player-forge-levels {
+    display: none !important;
+}
+.player-shop-search-wrap.expanded .player-forge-levels {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+.player-shop-search-wrap.expanded .player-forge-levels > span {
+    grid-column: 1 / -1;
+}
+/* Fila de búsqueda vacía (ej. Taberna solo filtros): no mostrar */
+.player-shop-search-wrap .player-shop-search-row:empty {
+    display: none !important;
+}
+.player-shop-search-input {
+    width: 100%;
+    max-width: 100%;
+    padding: 10px 14px;
+    background: #1a1a1a;
+    border: 1px solid #4a3c31;
+    border-radius: 6px;
+    color: #d4c4a8;
+    font-family: inherit;
+    font-size: 1em;
+    box-sizing: border-box;
+}
+.player-shop-search-input::placeholder {
+    color: #8b7355;
+}
+.player-shop-search-input:focus {
+    outline: none;
+    border-color: #8b7355;
+}
+.player-shop-search-row .player-shop-search-input {
+    margin-bottom: 0;
+}
+
+.player-shop-filters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    align-items: center;
+}
+.player-shop-filters .btn {
+    min-height: 40px;
+    padding: 10px 14px;
+    font-size: 0.9em;
+    flex-shrink: 0;
+}
+#inventory-filter-buttons .btn.active {
+    border-color: #8b5a2b;
+    background: rgba(139, 90, 43, 0.25);
+    color: #d4c4a8;
+}
+#inventory-filter-buttons .btn.active:hover {
+    background: rgba(139, 90, 43, 0.35);
+}
+.player-shop-filters.player-shop-filters-center {
+    justify-content: center;
+}
+
+/* Carrito oculto por defecto; botón "Ir al carrito" con badge */
+.player-shop-cart-toggle-row {
+    flex-basis: 100%;
+    width: 100%;
+    margin-bottom: 12px;
+}
+.player-shop-cart-toggle-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.player-shop-cart-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    background: #c9a227;
+    color: #1a1a1a;
+    border-radius: 10px;
+    font-size: 0.8em;
+    font-weight: bold;
+}
+.player-shop-cart-badge.hidden,
+.player-shop-cart-badge[data-count="0"] {
+    display: none !important;
+}
+/* Carrito oculto hasta que se pulse "Ir al carrito"; al ver carrito solo se ve el carrito (el botón sigue en su sitio) */
+.player-shop-layout .player-shop-cart-wrap {
+    display: none;
+}
+.player-shop-layout.player-shop-cart-visible .player-shop-catalog-wrap {
+    display: none !important;
+}
+.player-shop-layout.player-shop-cart-visible .player-shop-cart-wrap {
+    display: block !important;
+    flex: 1 1 100%;
+    max-width: 100%;
+}
+/* Mismo botón: "Ir al carrito" o "Seguir comprando" según la vista */
+.player-shop-cart-toggle-label-back {
+    display: none;
+}
+.player-shop-layout.player-shop-cart-visible .player-shop-cart-toggle-label-default {
+    display: none;
+}
+.player-shop-layout.player-shop-cart-visible .player-shop-cart-toggle-label-back {
+    display: inline;
+}
+/* Posada: vista solo carrito; el botón "Ir al carrito" sigue visible y pasa a "Seguir comprando" */
+#player-posada-body.view-cart .player-posada-oro,
+#player-posada-body.view-cart .player-shop-search-wrap,
+#player-posada-body.view-cart .player-posada-cuartos {
+    display: none !important;
+}
+#player-posada-body.view-cart #player-posada-cart {
+    display: block !important;
+}
+#player-posada-body .player-shop-cart-toggle-label-back {
+    display: none;
+}
+#player-posada-body.view-cart .player-shop-cart-toggle-label-default {
+    display: none;
+}
+#player-posada-body.view-cart .player-shop-cart-toggle-label-back {
+    display: inline;
+}
+
+/* Taberna: ocultar búsqueda y tabs hasta que el jugador haya elegido una entrada (Normal/VIP). */
+#player-tavern-body.tavern-showing-entrada .player-tavern-search-wrap {
+    display: none !important;
+}
+/* Taberna: ocultar "Búsqueda y filtros" (y tabs) cuando el usuario está viendo el carrito. */
+#player-tavern-body.tavern-viewing-cart .player-tavern-search-wrap {
+    display: none !important;
+}
+/* Taberna: una sola búsqueda arriba (junto a los tabs). Ocultar las búsquedas dentro de Bebidas y Cocina. */
+#tavern-bebidas .player-shop-search-wrap,
+#tavern-cocina .player-shop-search-wrap {
+    display: none !important;
+}
+
+/* Santuario (todos iguales; no se suben items) */
+.player-santuario-dice { transition: transform 0.1s; }
+.player-santuario-dice.rolling { animation: playerSantuarioDiceRoll 0.15s infinite linear; }
+.player-santuario-dice.success { border-color: #4a9c5d; color: #4a9c5d; box-shadow: 0 0 25px rgba(74,156,93,0.5); }
+.player-santuario-dice.fail { border-color: #9c4a4a; color: #9c4a4a; box-shadow: 0 0 25px rgba(156,74,74,0.5); }
+@keyframes playerSantuarioDiceRoll {
+    0% { transform: rotate(0deg) scale(1); }
+    25% { transform: rotate(15deg) scale(1.05); }
+    50% { transform: rotate(0deg) scale(1); }
+    75% { transform: rotate(-15deg) scale(1.05); }
+    100% { transform: rotate(0deg) scale(1); }
+}
+
+/* Taberna (estilo Búho Sabio) */
+.player-tavern-entry-card { background: rgba(0,0,0,0.3); border-radius: 12px; padding: 20px; border: 2px solid; }
+.player-tavern-entry-card.free { border-color: #2ecc71; }
+.player-tavern-entry-card.vip { border-color: #f4d03f; background: rgba(244,208,63,0.05); }
+.player-tavern-products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; max-height: 360px; overflow-y: auto; }
+.player-tavern-category-title { grid-column: 1 / -1; font-size: 1.2em; color: #f4d03f; padding: 12px 0 8px 0; border-bottom: 2px solid rgba(244,208,63,0.3); margin-bottom: 10px; }
+.player-tavern-product-card { background: linear-gradient(135deg, rgba(92,74,58,0.4), rgba(15,15,35,0.6)); border-radius: 10px; padding: 14px; border: 2px solid #5c4a3a; transition: all 0.2s; }
+.player-tavern-product-card:hover { border-color: #d4a574; }
+.player-tavern-product-card.drink { border-left: 4px solid #e74c3c; }
+.player-tavern-product-card.food { border-left: 4px solid #2ecc71; }
+.player-tavern-product-card.special { border-left: 4px solid #9b59b6; }
+.player-tavern-product-name { font-weight: 600; margin-bottom: 6px; font-size: 1em; color: #f0e6d3; }
+.player-tavern-product-type { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.7em; margin-bottom: 8px; font-weight: 600; }
+.player-tavern-product-card.drink .player-tavern-product-type { background: #e74c3c; color: #fff; }
+.player-tavern-product-card.food .player-tavern-product-type { background: #2ecc71; color: #fff; }
+.player-tavern-product-card.special .player-tavern-product-type { background: #9b59b6; color: #fff; }
+.player-tavern-effect { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 8px; padding: 8px 10px; background: rgba(244,208,63,0.1); border-radius: 6px; border-left: 3px solid #f4d03f; font-size: 0.85em; color: #f4d03f; min-height: 2em; }
+.player-tavern-product-desc { color: #a89080; font-size: 0.85em; margin-bottom: 10px; font-style: italic; min-height: 1.4em; }
+.player-tavern-product-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+.player-tavern-product-price { font-weight: bold; color: #f4d03f; }
+.player-tavern-cart-wrap { background: rgba(0,0,0,0.3); border: 1px solid rgba(212,165,116,0.3); border-radius: 12px; padding: 16px; max-height: 380px; overflow-y: auto; }
+.player-tavern-cart-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(92,74,58,0.3); border-radius: 8px; margin-bottom: 8px; border: 1px solid #5c4a3a; }
+.player-tavern-cart-name { font-size: 0.9em; margin-bottom: 2px; color: #f0e6d3; }
+.player-tavern-cart-price { color: #f4d03f; font-size: 0.85em; }
+.player-tavern-cart-total { margin-top: 16px; padding-top: 12px; border-top: 2px solid rgba(212,165,116,0.4); }
+.player-tavern-cart-total-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
+
+@media (max-width: 600px) {
+    .player-mistfall-shops-grid { grid-template-columns: 1fr; }
+    .player-mistfall-npcs-grid { grid-template-columns: 1fr; }
+    .player-mistfall-h1 { font-size: 1.6em; letter-spacing: 3px; }
+}
+
+/* RESPONSIVE */
+@media (max-width: 1200px) {
+    body { 
+        padding: 10px; 
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    /* Ocultar barra de scroll en móvil para que parezca app nativa */
+    html, body {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    html::-webkit-scrollbar, body::-webkit-scrollbar {
+        display: none;
+        width: 0;
+        height: 0;
+    }
+
+    /* En móvil: header = barra fija arriba siempre; placa debajo en el contenido */
+    .header {
+        padding: 0;
+        margin-bottom: 24px;
+        position: relative;
+        background: none;
+        border-bottom: none;
+        padding-top: 56px;
+    }
+    .header-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+    }
+    /* Barra del header: fija siempre en el tope (fixed), ancho completo */
+    .header-actions {
+        order: -1;
+        flex-shrink: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        min-height: 48px;
+        padding: 12px 16px;
+        background: linear-gradient(180deg, #1e1b18 0%, #1a1815 100%);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        z-index: 100;
+    }
+    .app-brand {
+        display: inline-flex;
+    }
+    /* Placa del jugador/DM: bloque separado en el contenido, debajo del header */
+    .header-inner .player-plaque,
+    .header-inner .dm-plaque {
+        order: 0;
+        margin-top: 20px;
+        margin-bottom: 16px;
+        padding: 20px 14px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+    .header-inner .player-plaque .player-plaque-money-row {
+        margin-top: 8px;
+    }
+    .header-inner .player-plaque .metal-plaque-content,
+    .header-inner .dm-plaque .metal-plaque-content {
+        gap: 10px;
+    }
+    .header h1 { font-size: 1.6em; }
+    .header p { font-size: 0.95em; }
+    .header::before, .header::after { display: none; }
+
+    /* Menú hamburguesa: mostrar botón y convertir nav en drawer (solo hamburguesa en móvil) */
+    .hamburger-btn {
+        display: inline-flex;
+    }
+    .nav-wrapper {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: min(300px, 85vw);
+        max-width: 300px;
+        background: linear-gradient(180deg, #1e1b18 0%, #1a1815 100%);
+        border-left: 2px solid #4a3c31;
+        box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
+        z-index: 1001;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        overflow-y: auto;
+        padding: 20px 12px;
+        margin-bottom: 0;
+    }
+    .nav-wrapper.open {
+        transform: translateX(0);
+    }
+    .nav-wrapper .nav-tabs {
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 0;
+        align-items: stretch;
+    }
+    .nav-wrapper .nav-tab {
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+        padding: 14px 16px;
+        font-size: 0.9em;
+        min-height: 48px;
+        background: linear-gradient(180deg, #2a2522 0%, #1e1b18 100%) !important;
+        border: 1px solid #8b5a2b !important;
+        color: #d4af37 !important;
+        border-radius: 6px;
+        font-family: 'Cinzel', serif;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .nav-wrapper .nav-tab:hover {
+        background: linear-gradient(180deg, #352f2a 0%, #2a2522 100%) !important;
+        border-color: #a06830 !important;
+        color: #e8d4a8 !important;
+    }
+    .nav-wrapper .nav-tab.active {
+        background: linear-gradient(180deg, #6b4423 0%, #8b5a2b 100%) !important;
+        border-color: #8b5a2b !important;
+        color: #f5e6c8 !important;
+        box-shadow: 0 0 10px rgba(139, 90, 43, 0.35);
+    }
+    .nav-wrapper .nav-tabs .nav-tabs-row1,
+    .nav-wrapper .nav-tabs .nav-tabs-row2 {
+        width: 100%;
+        flex-direction: column;
+        gap: 8px;
+        overflow-x: visible;
+    }
+    .nav-wrapper .nav-tabs .nav-tabs-row1 .nav-tab {
+        flex-shrink: 0;
+    }
+    .nav-wrapper .nav-tab-logout {
+        color: #ffffff !important;
+        margin-top: 8px;
+    }
+
+    /* En móvil la nav y la hamburguesa no se ocultan al entrar en ciudad (solo se ocultan en PC) */
+
+    .header-title-wrap {
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+    #player-view-container .header-inner .player-plaque,
+    #main-container .header-inner .dm-plaque {
+        width: 100%;
+        max-width: 100%;
+    }
+    .player-plaque,
+    .dm-plaque {
+        width: 100%;
+        max-width: 100%;
+    }
+    .dm-plaque-name {
+        font-size: 1.35em;
+    }
+    .player-plaque-name {
+        font-size: 1.35em;
+    }
+    .player-plaque-oro,
+    .player-plaque-banco {
+        font-size: 1.05em;
+        padding: 10px 16px;
+    }
+
+    /* Footer "Powered by" más pequeño en móvil */
+    .metal-plaque-footer {
+        margin-top: 36px;
+        padding: 20px 12px;
+    }
+    .metal-plaque-footer .metal-plaque {
+        padding: 12px 20px;
+        border-width: 2px;
+        border-radius: 6px;
+    }
+    .metal-plaque-footer .metal-plaque::before,
+    .metal-plaque-footer .metal-plaque::after {
+        width: 10px;
+        height: 10px;
+        top: 5px;
+        border-width: 1px;
+    }
+    .metal-plaque-footer .metal-plaque::before { left: 5px; }
+    .metal-plaque-footer .metal-plaque::after { right: 5px; }
+    .metal-plaque-footer .metal-plaque .screw-bottom-left,
+    .metal-plaque-footer .metal-plaque .screw-bottom-right {
+        width: 10px;
+        height: 10px;
+        bottom: 5px;
+        border-width: 1px;
+    }
+    .metal-plaque-footer .metal-plaque .screw-bottom-left { left: 5px; }
+    .metal-plaque-footer .metal-plaque .screw-bottom-right { right: 5px; }
+    .metal-plaque-footer .metal-plaque-text {
+        font-size: 0.7em;
+    }
+    .metal-plaque-footer .metal-plaque-subtitle {
+        font-size: 0.6em;
+    }
+
+    .nav-tabs { gap: 6px; }
+    .nav-tab {
+        padding: 10px 12px; 
+        font-size: 0.85em; 
+        flex: 1 1 auto;
+        text-align: center;
+    }
+
+    /* Directorio en móvil: botón "Menú" para mostrar/ocultar tabs */
+    .player-directorio-top-bar {
+        justify-content: center;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .player-directorio-tabs-toggle {
+        display: flex;
+    }
+    .player-directorio-top-bar.directorio-tabs-collapsed .player-directorio-tabs {
+        display: none !important;
+    }
+    .player-directorio-top-bar .player-directorio-tabs {
+        justify-content: center !important;
+        flex: 0 1 auto;
+    }
+    .player-view-container.player-in-city-view .player-directorio-tabs {
+        justify-content: center !important;
+    }
+    
+    .section-header { 
+        flex-direction: column; 
+        gap: 15px; 
+        align-items: center;
+        text-align: center;
+    }
+    .section-header h2 { 
+        font-size: 1.4em; 
+        text-align: center;
+        width: 100%;
+    }
+    .section-header .btn {
+        position: static;
+        width: 100%;
+    }
+
+    .subsection-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    .subsection-header h4 {
+        text-align: center;
+        width: 100%;
+    }
+
+    .city-header {
+        flex-direction: column; 
+        align-items: flex-start; 
+        gap: 10px; 
+    }
+    .city-info h3 { font-size: 1.2em; }
+    .city-meta { 
+        width: 100%; 
+        justify-content: flex-start; 
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .city-toggle { margin-left: auto; }
+    
+    .city-actions { 
+        flex-wrap: wrap; 
+        padding: 10px 15px;
+    }
+    .city-actions .btn { flex: 1 1 45%; }
+    
+    .mini-cards { 
+        grid-template-columns: 1fr; 
+    }
+    
+    .cards-grid { 
+        grid-template-columns: 1fr; 
+    }
+    
+    .modal { 
+        margin: 10px; 
+        max-height: 95vh; 
+    }
+    /* Modales de tienda: estilo tipo Santuario — caja centrada, bordes redondeados (sí pueden tapar el header) */
+    #player-artesanias-modal.modal-overlay.active,
+    #player-emporio-modal.modal-overlay.active,
+    #player-forge-modal.modal-overlay.active,
+    #player-biblioteca-modal.modal-overlay.active,
+    #player-tavern-modal.modal-overlay.active,
+    #player-potion-shop-modal.modal-overlay.active,
+    #player-posada-modal.modal-overlay.active,
+    #player-batalla-modal.modal-overlay.active,
+    #player-shop-catalog-modal.modal-overlay.active {
+        padding: 12px;
+        align-items: flex-start;
+        justify-content: center;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    #player-artesanias-modal .modal,
+    #player-emporio-modal .modal,
+    #player-forge-modal .modal,
+    #player-biblioteca-modal .modal,
+    #player-tavern-modal .modal,
+    #player-potion-shop-modal .modal,
+    #player-posada-modal .modal,
+    #player-batalla-modal .modal,
+    #player-shop-catalog-modal .modal {
+        width: 100%;
+        max-width: 500px;
+        max-height: calc(100vh - 24px);
+        margin: 0 auto;
+        border-radius: 8px;
+        border: 1px solid #8b5a2b;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+    #player-artesanias-modal .modal-body,
+    #player-emporio-modal .modal-body,
+    #player-forge-modal .modal-body,
+    #player-biblioteca-modal .modal-body,
+    #player-tavern-modal .modal-body,
+    #player-potion-shop-modal .modal-body,
+    #player-posada-modal .modal-body,
+    #player-batalla-modal .modal-body,
+    #player-shop-catalog-modal .modal-body {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    /* Layout tiendas en móvil: una columna, carrito arriba */
+    .player-shop-layout {
+        flex-direction: column !important;
+        gap: 16px !important;
+    }
+    .player-shop-catalog-wrap,
+    .player-shop-cart-wrap {
+        min-width: 0 !important;
+        flex: 1 1 auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    .player-shop-cart-wrap {
+        max-height: 40vh !important;
+        min-height: 120px;
+    }
+    .player-shop-catalog-wrap {
+        order: 0;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+    }
+    /* Grids de ítems en una columna */
+    .player-artesanias-grid,
+    .player-emporio-grid,
+    .player-forge-grid,
+    .player-biblio-grid,
+    .player-biblioteca-section.player-biblio-grid,
+    .player-tavern-products-grid,
+    .player-potion-products-grid {
+        grid-template-columns: 1fr !important;
+        max-height: none;
+    }
+    /* Forja: niveles del grupo en 2x2 */
+    .player-forge-levels {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    .player-forge-levels > span {
+        grid-column: 1 / -1;
+    }
+    .player-forge-level {
+        min-height: 44px;
+    }
+    /* Pestañas/filtros de tiendas: wrap y área táctil (igual en todas, incluida Biblioteca) */
+    .player-shop-filters {
+        gap: 8px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+    .player-shop-filters.player-shop-filters-center {
+        justify-content: flex-start;
+    }
+    .player-shop-filters .btn {
+        min-height: 44px;
+        padding: 10px 14px;
+        flex-shrink: 0;
+    }
+    /* Taberna: entrada en columna */
+    .player-tavern-entry-options {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .player-tavern-entry-card {
+        min-width: 0 !important;
+        max-width: none !important;
+        width: 100%;
+    }
+    /* Recibo en móvil */
+    .player-shop-receipt,
+    .player-biblio-receipt {
+        max-width: 100% !important;
+        padding: 16px !important;
+    }
+    /* Botones de tienda táctiles */
+    .player-artesanias-footer .btn,
+    .player-emporio-add-btn,
+    .player-forge-footer .btn,
+    .player-biblio-add-btn {
+        min-height: 44px;
+        padding: 10px 16px;
+    }
+    /* Búsqueda en móvil: el botón y el wrap deben verse siempre */
+    .player-shop-search-wrap {
+        display: block !important;
+        visibility: visible !important;
+    }
+    .player-shop-search-toggle {
+        display: flex !important;
+        min-height: 44px;
+        visibility: visible !important;
+    }
+    .player-shop-search-input {
+        max-width: 100%;
+    }
+    .modal-header h3 { font-size: 1.2em; }
+    .modal-body { padding: 15px; }
+    .modal-footer { 
+        flex-direction: column; 
+        padding: 15px;
+    }
+    .modal-footer .btn { width: 100%; }
+    
+    .form-row { 
+        grid-template-columns: 1fr; 
+    }
+    
+    .card { padding: 15px; }
+    .card-title { font-size: 1.1em; }
+    .card-actions { 
+        flex-direction: column; 
+    }
+    .card-actions .btn { 
+        width: 100%; 
+        min-width: auto; 
+    }
+    
+    .mini-card-actions {
+        flex-direction: column;
+    }
+    .mini-card-actions .btn {
+        width: 100%;
+    }
+    
+    .toast {
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        text-align: center;
+    }
+
+    /* Sub-tabs Cartas: en tablet/móvil, botones más grandes y reparto equitativo */
+    .player-notifications-subtabs {
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+    .player-notifications-subtab {
+        flex: 1 1 calc(50% - 4px);
+        min-width: 0;
+        padding: 12px 10px;
+        font-size: 0.85em;
+        min-height: 48px;
+    }
+    /* Cartas del destino: en móvil, cartas arriba y mensaje abajo */
+    .player-cartas-destino-layout {
+        flex-direction: column;
+    }
+    .player-cartas-destino-layout .player-cartas-destino-grid {
+        max-width: none;
+    }
+    .player-cartas-destino-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .player-cartas-destino-layout .player-cartas-destino-mensaje-general {
+        margin-top: 20px;
+    }
+    .dm-notifications-subtabs {
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+    .dm-notifications-subtab {
+        flex: 1 1 calc(50% - 4px);
+        min-width: 0;
+        padding: 12px 10px;
+        font-size: 0.85em;
+        min-height: 48px;
+    }
+    .dm-notifications-card {
+        padding: 18px;
+    }
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #4a3c31;
+    border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #8b5a2b;
+}
+
+/* Footer Placa Metálica */
+.metal-plaque-footer {
+    margin-top: 60px;
+    padding: 30px 20px;
+    text-align: center;
+    position: relative;
+}
+
+.metal-plaque {
+    display: inline-block;
+    background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 50%, #1a1a1a 100%);
+    border: 3px solid #4a4a4a;
+    border-radius: 8px;
+    padding: 20px 40px;
+    position: relative;
+    box-shadow: 
+        inset 0 2px 4px rgba(255,255,255,0.1),
+        inset 0 -2px 4px rgba(0,0,0,0.5),
+        0 4px 8px rgba(0,0,0,0.6),
+        0 0 0 2px rgba(0,0,0,0.3);
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    color: #d4c4a8;
+    font-family: 'Cinzel', serif;
+    letter-spacing: 1px;
+}
+
+.metal-plaque-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Tornillos en las esquinas */
+.metal-plaque::before,
+.metal-plaque::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: radial-gradient(circle, #5a5a5a 0%, #3a3a3a 50%, #1a1a1a 100%);
+    border: 2px solid #2a2a2a;
+    border-radius: 50%;
+    box-shadow: 
+        inset 0 1px 2px rgba(255,255,255,0.2),
+        inset 0 -1px 2px rgba(0,0,0,0.8),
+        0 2px 4px rgba(0,0,0,0.5);
+}
+
+.metal-plaque::before {
+    top: 8px;
+    left: 8px;
+}
+
+.metal-plaque::after {
+    top: 8px;
+    right: 8px;
+}
+
+/* Tornillos adicionales usando pseudo-elementos con clases */
+.metal-plaque .screw-bottom-left,
+.metal-plaque .screw-bottom-right {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: 
+        radial-gradient(circle, #5a5a5a 0%, #3a3a3a 50%, #1a1a1a 100%),
+        linear-gradient(90deg, transparent 46%, #0a0a0a 48%, #0a0a0a 52%, transparent 54%),
+        linear-gradient(0deg, transparent 46%, #0a0a0a 48%, #0a0a0a 52%, transparent 54%);
+    background-size: 100% 100%, 100% 100%, 100% 100%;
+    border: 2px solid #2a2a2a;
+    border-radius: 50%;
+    box-shadow: 
+        inset 0 1px 2px rgba(255,255,255,0.2),
+        inset 0 -1px 2px rgba(0,0,0,0.8),
+        0 2px 4px rgba(0,0,0,0.5);
+    bottom: 8px;
+    display: block;
+}
+
+.metal-plaque .screw-bottom-left {
+    left: 8px;
+}
+
+.metal-plaque .screw-bottom-right {
+    right: 8px;
+}
+
+/* Texto con efecto grabado */
+.metal-plaque-text {
+    color: #d4c4a8;
+    text-shadow: 
+        1px 1px 0 rgba(0,0,0,0.8),
+        -1px -1px 0 rgba(255,255,255,0.1);
+    font-weight: 600;
+    font-size: 0.9em;
+    text-transform: uppercase;
+}
+
+.metal-plaque-subtitle {
+    color: #a89878;
+    text-shadow: 
+        1px 1px 0 rgba(0,0,0,0.8),
+        -1px -1px 0 rgba(255,255,255,0.05);
+    font-weight: 400;
+    font-size: 0.75em;
+    font-style: italic;
+    text-transform: lowercase;
+    letter-spacing: 0.5px;
+}
+
+/* Placa metálica del jugador (nombre, clase, oro) */
+.player-plaque {
+    padding: 16px 28px;
+    min-width: 0;
+    flex: 1 1 auto;
+    max-width: 100%;
+}
+.player-plaque .metal-plaque-content {
+    gap: 6px;
+    align-items: center;
+    text-align: center;
+}
+.player-plaque-name {
+    margin: 0;
+    font-family: 'Cinzel', serif;
+    font-size: 1.5em;
+    color: #d4af37;
+    text-shadow: 
+        1px 1px 0 rgba(0,0,0,0.8),
+        -1px -1px 0 rgba(255,255,255,0.08);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    line-height: 1.2;
+}
+.player-plaque .metal-plaque-subtitle {
+    margin: 0;
+    font-size: 0.8em;
+    text-transform: none;
+    font-style: normal;
+}
+.player-plaque-money-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px 16px;
+    margin-top: 8px;
+}
+.player-plaque-oro {
+    margin: 0;
+    padding: 4px 0;
+    background: none;
+    border: none;
+    border-radius: 0;
+    color: #f4e4a6;
+    font-family: 'Cinzel', serif;
+    font-size: 1em;
+    font-weight: 600;
+    font-style: normal;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.8);
+    box-shadow: none;
+}
+.player-plaque-banco {
+    margin: 0;
+    padding: 4px 0;
+    background: none;
+    border: none;
+    border-radius: 0;
+    color: #b8e0b8;
+    font-family: 'Cinzel', serif;
+    font-size: 1em;
+    font-weight: 600;
+    font-style: normal;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.8);
+    box-shadow: none;
+}
+
+/* Placa metálica del DM (nombre, igual que jugadores) */
+.dm-plaque {
+    padding: 16px 28px;
+    min-width: 0;
+    flex: 1 1 auto;
+    max-width: 100%;
+}
+.dm-plaque .metal-plaque-content {
+    gap: 4px;
+    align-items: center;
+    text-align: center;
+}
+.dm-plaque-name {
+    margin: 0;
+    font-family: 'Cinzel', serif;
+    font-size: 1.5em;
+    color: #d4af37;
+    text-shadow: 
+        1px 1px 0 rgba(0,0,0,0.8),
+        -1px -1px 0 rgba(255,255,255,0.08);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    line-height: 1.2;
+}
+.dm-plaque-subtitle {
+    margin: 0;
+    font-size: 0.8em;
+    text-transform: none;
+    font-style: normal;
+}
+
+@media (max-width: 480px) {
+    .nav-tabs {
+        flex-direction: column;
+    }
+    .nav-tab {
+        width: 100%;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .city-actions .btn {
+        flex: 1 1 100%;
+    }
+
+    /* Sub-tabs Cartas: en móvil estrecho, una pestaña por fila (más fácil de tocar) */
+    .player-notifications-subtab {
+        flex: 1 1 100%;
+        width: 100%;
+        padding: 14px 12px;
+        font-size: 0.9em;
+    }
+    .dm-notifications-subtab {
+        flex: 1 1 100%;
+        width: 100%;
+        padding: 14px 12px;
+        font-size: 0.9em;
+    }
+
+    /* Footer "Powered by" aún más pequeño en móvil estrecho */
+    .metal-plaque-footer {
+        margin-top: 24px;
+        padding: 14px 10px;
+    }
+    .metal-plaque-footer .metal-plaque {
+        padding: 10px 14px;
+    }
+    .metal-plaque-footer .metal-plaque-text {
+        font-size: 0.6em;
+    }
+    .metal-plaque-footer .metal-plaque-subtitle {
+        font-size: 0.55em;
+    }
+}
+
+/* Estilos para notas del jugador por ciudad */
+.player-city-notes-input {
+    width: 100%;
+    background: #1a1a1a;
+    border: 1px solid #4a3c31;
+    color: #d4c4a8;
+    padding: 8px;
+    border-radius: 4px;
+    font-family: 'Crimson Text', serif;
+    font-size: 0.95em;
+    resize: vertical;
+    transition: border-color 0.3s ease;
+}
+
+.player-city-notes-input:focus {
+    outline: none;
+    border-color: #8b5a2b;
+    box-shadow: 0 0 5px rgba(139, 90, 43, 0.3);
+}
+
+.player-city-notes-input::placeholder {
+    color: #6b5d4a;
+    font-style: italic;
+}
+
+/* Estilos para el modal Mi Casa */
+#mi-casa-imagen-container img {
+    transition: opacity 0.3s ease;
+}
+
+#mi-casa-imagen-container {
+    box-shadow: inset 0 -10px 30px rgba(0,0,0,0.5);
+}
+
+#mi-casa-nombre-display {
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+}
+
+#mi-casa-descripcion-display {
+    text-align: justify;
+}
+
+#mi-casa-notas-dm-display:empty::before {
+    content: "No hay notas del DM sobre tu casa.";
+    color: #6b5d4a;
+    font-style: italic;
+}
+
+#mi-casa-notas-personales {
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+#mi-casa-notas-personales:focus {
+    box-shadow: 0 0 12px rgba(139, 90, 43, 0.5);
+    border-color: #8b5a2b;
+    outline: none;
+}
+
+/* Estilos mejorados para el módulo Mi Casa */
+.mi-casa-main-block {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.mi-casa-main-block h2 {
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+}
+
+#mi-casa-imagen-container img {
+    width: 100%;
+    height: auto;
+    max-height: 600px;
+    object-fit: cover;
+    display: block;
+}
+
+#mi-casa-descripcion-display:empty::before {
+    content: "El DM aún no ha agregado una descripción para tu casa.";
+    color: #6b5d4a;
+    font-style: italic;
+}
+
+#mi-casa-notas-dm-display:empty::before {
+    content: "No hay notas del DM.";
+    color: #6b5d4a;
+    font-style: italic;
+}
+
+.mi-casa-notes-block {
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+/* ========================================
+   AJUSTES DE MAPA PARA MÓVILES - contenedor proporcionado al ancho
+   ======================================== */
+@media (max-width: 768px) {
+    /* Contenedor 16:9 como la imagen del mapa para que no quede espacio vacío */
+    .player-map-viewport {
+        width: 100% !important;
+        aspect-ratio: 16 / 9;
+        height: auto !important;
+        min-height: 180px !important;
+        max-height: 60vh;
+    }
+    
+    .player-map-wrap {
+        padding: 12px;
+    }
+    
+    .player-map-img {
+        width: 100% !important;
+        height: auto !important;
+        display: block;
+    }
+}
+
+/* Barra de progreso en Análisis de objetos (jugador) */
+.analisis-progress-wrap {
+    width: 100%;
+    height: 8px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+.analisis-progress-bar {
+    height: 100%;
+    width: 40%;
+    background: linear-gradient(90deg, #8b5a2b, #c9a227);
+    border-radius: 4px;
+    animation: analisis-progress-slide 1.2s ease-in-out infinite;
+}
+@keyframes analisis-progress-slide {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(350%); }
+}

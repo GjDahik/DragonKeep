@@ -1,0 +1,6 @@
+name,price,effect,avg,rarity
+Poción de Curación,50,Recupera 2d4+2 HP,7 HP,común
+Poción de Curación Superior,150,Recupera 4d4+4 HP,14 HP,inusual
+Espada +1,350,+1 a ataques y daño,,inusual
+Capa Élfica,2500,Ventaja en tiradas de Sigilo,,rara
+Anillo de Protección,5000,+1 a CA y tiradas de salvación,,legendaria

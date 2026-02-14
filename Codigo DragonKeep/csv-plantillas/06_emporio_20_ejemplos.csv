@@ -1,0 +1,33 @@
+name,price,section,effect,rarity
+Polvo de diamante,50,materiales,Componente material para hechizos de adivinación y restauración,común
+Perla,100,materiales,Componente para conjuros como Identificar o Resurrección,común
+Hojas de menta seca,5,materiales,Usadas en pociones y rituales menores de curación,común
+Carbón vegetal,2,materiales,Base para círculos de protección y tinta arcana,común
+Tiza bendita,8,materiales,Para dibujar runas y círculos rituales,común
+Sangre de murciélago,15,materiales,Componente en hechizos de oscuridad y vuelo,común
+Pluma de cuervo,12,materiales,Útil para escritura mágica y augurios,común
+Arena de reloj de arena,20,materiales,Usada en conjuros de tiempo y Retardo,común
+Azufre,25,materiales,Componente para fuego y explosiones mágicas,común
+Polvo de cristal,80,materiales,Amplifica hechizos de ilusión y reflejo,inusual
+Incienso exótico,120,raros,Objeto importado; usado en rituales de invocación,inusual
+Cristal de enfoque,200,raros,Aumenta la concentración y poder de hechizos arcanos,rara
+Reliquia de tierras lejanas,350,raros,Artefacto decorativo con aura mágica residual,inusual
+Colmillo de bestia extinta,180,raros,Trofeo de cacería; valorado por coleccionistas,inusual
+Espejo de obsidiana,280,raros,Permite breves vislumbres en otros planos,rara
+Moneda antigua de reinos perdidos,95,raros,numismática; algunas portan runas menores,común
+Tela de araña de las profundidades,220,raros,Material resistente para redes y ataduras mágicas,rara
+Huevo de dragón vacío,500,raros,Cáscara ornamental; objeto de colección,legendaria
+Mapa del Bosque Norte,25,mapas,Rutas y puntos de interés de la región,común
+Mapa de las Minas Abandonadas,45,mapas,Incluye niveles y trampas conocidas,común
+Atlas del Reino,60,mapas,Compendio de todas las regiones conocidas,común
+Carta náutica del Puerto Este,35,mapas,Rutas marítimas y fondeaderos,común
+Mapa de tesoros (réplica),90,mapas,Copia de un mapa supuestamente perdido; valor decorativo,inusual
+Brújula del aventurero,18,otros,Apunta al norte; resistente al agua,común
+Caja de herramientas de viaje,15,otros,"Martillo, clavos, soga y herramientas básicas",común
+Ración de viaje (x5),10,otros,Comida conservada para travesías largas,común
+Cantimplora reforzada,8,otros,No gotea; lleva hasta 1 litro,común
+Linterna de mano,12,otros,Ilumina 12 metros; usa aceite,común
+Bolsa de componentes vacía,6,otros,Para guardar polvos y pequeños ingredientes,común
+Kit de primeros auxilios,22,otros,Vendas, antiséptico y hierbas básicas,común
+Lupa de investigador,30,otros,Aumenta la precisión al examinar pistas,común
+Tintero y pluma de calidad,14,otros,Para anotar descubrimientos y contratos,común
