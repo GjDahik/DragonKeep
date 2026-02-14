@@ -1,0 +1,25 @@
+{
+  "name": "DragonKeep",
+  "short_name": "DragonKeep",
+  "description": "Dashboard para Dungeon Master y app de personajes",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#2c1810",
+  "background_color": "#1a120b",
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

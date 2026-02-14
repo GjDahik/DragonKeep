@@ -1,0 +1,8 @@
+name,price,type,tab,effect,desc
+Flechas Comunes,1,common,flechas,,Flechas estándar de buena calidad
+Flecha de Fuego,30,elemental,flechas,1d6 daño de fuego,Emite fuego al impacto
+Flecha de Hielo,30,elemental,flechas,1d6 daño frío,Ralentiza en impacto
+Capa Impermeable,25,gear,ropa,,Protege de la lluvia
+Botas del Cazador,40,magic,ropa,Ventaja en rastrear,
+Reparación de Arcos,15,service,servicios,,Restauración completa de arcos dañados
+Afilado de Cuchillas,10,service,servicios,,+1 daño hasta próximo descanso
