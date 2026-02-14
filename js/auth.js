@@ -21,7 +21,8 @@ function ensureAuthUid() {
 // ==================== DM AUTHENTICATION ====================
 async function loginDM(nombre, pin) {
     try {
-        var uid = await ensureAuthUid();
+        var uid = null;
+        try { uid = await ensureAuthUid(); } catch (_) { /* Auth bloqueado (ej. referrer null): con reglas permisivas el login sigue */ }
         var dmsSnapshot = await db.collection('dms')
             .where('nombre', '==', nombre)
             .where('pin', '==', pin)
@@ -37,7 +38,7 @@ async function loginDM(nombre, pin) {
         currentUser = { id: dmDoc.id, nombre: dmDoc.data().nombre, tipo: 'dm' };
         userType = 'dm';
 
-        await db.collection('sessions').doc(uid).set({ tipo: 'dm', dmId: dmDoc.id });
+        if (uid) await db.collection('sessions').doc(uid).set({ tipo: 'dm', dmId: dmDoc.id }).catch(function () {});
         sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
         sessionStorage.setItem('userType', 'dm');
 
@@ -52,7 +53,8 @@ async function loginDM(nombre, pin) {
 // ==================== PLAYER AUTHENTICATION ====================
 async function loginPlayer(nombre, pin) {
     try {
-        var uid = await ensureAuthUid();
+        var uid = null;
+        try { uid = await ensureAuthUid(); } catch (_) { /* Auth bloqueado (ej. referrer null): con reglas permisivas el login sigue */ }
         var playersSnapshot = await db.collection('players')
             .where('nombre', '==', nombre)
             .where('pin', '==', pin)
@@ -82,7 +84,7 @@ async function loginPlayer(nombre, pin) {
         };
         userType = 'player';
 
-        await db.collection('sessions').doc(uid).set({ tipo: 'player', playerId: playerDoc.id });
+        if (uid) await db.collection('sessions').doc(uid).set({ tipo: 'player', playerId: playerDoc.id }).catch(function () {});
         sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
         sessionStorage.setItem('userType', 'player');
 

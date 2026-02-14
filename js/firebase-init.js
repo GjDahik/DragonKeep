@@ -14,5 +14,7 @@
     if (!conf.apiKey || conf.apiKey === "__REPLACE_API_KEY__") return;
     firebase.initializeApp(conf);
     window.db = firebase.firestore();
-    if (typeof firebase.auth === 'function') firebase.auth().signInAnonymously().catch(function (err) { console.warn('[Auth] signInAnonymously:', err.message); });
+    if (typeof firebase.auth === 'function' && typeof location !== 'undefined' && location.protocol !== 'file:') {
+        firebase.auth().signInAnonymously().catch(function (err) { console.warn('[Auth] signInAnonymously:', err.message); });
+    }
 })();

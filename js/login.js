@@ -35,33 +35,30 @@ function loadLoginPlayers() {
         sel.innerHTML = '<option value="">— Error: db no disponible —</option>';
         return;
     }
-    var doQuery = function () {
+    function doQuery() {
         db.collection('players').limit(200).get()
             .then(function (snap) {
-            var list = snap.docs.map(function (doc) {
-                var d = doc.data();
-                return { id: doc.id, nombre: d.nombre, visible: d.visible };
-            }).filter(function (p) { return p.visible !== false; })
-            .sort(function (a, b) { return (a.nombre || '').localeCompare(b.nombre || ''); });
-            sel.innerHTML = '<option value="">— Selecciona tu aventurero —</option>';
-            list.forEach(function (p) {
-                var opt = document.createElement('option');
-                opt.value = p.nombre || '';
-                opt.textContent = p.nombre || 'Sin nombre';
-                opt.dataset.id = p.id;
-                sel.appendChild(opt);
-            });
+                var list = snap.docs.map(function (doc) {
+                    var d = doc.data();
+                    return { id: doc.id, nombre: d.nombre, visible: d.visible };
+                }).filter(function (p) { return p.visible !== false; })
+                  .sort(function (a, b) { return (a.nombre || '').localeCompare(b.nombre || ''); });
+                sel.innerHTML = '<option value="">— Selecciona tu aventurero —</option>';
+                list.forEach(function (p) {
+                    var opt = document.createElement('option');
+                    opt.value = p.nombre || '';
+                    opt.textContent = p.nombre || 'Sin nombre';
+                    opt.dataset.id = p.id;
+                    sel.appendChild(opt);
+                });
             })
             .catch(function (e) {
                 sel.innerHTML = '<option value="">— Error al cargar —</option>';
                 console.error(e);
             });
-    };
+    }
     if (typeof ensureAuthUid === 'function') {
-        ensureAuthUid().then(doQuery).catch(function (e) {
-            sel.innerHTML = '<option value="">— Error al cargar —</option>';
-            console.error(e);
-        });
+        ensureAuthUid().then(doQuery).catch(function () { doQuery(); });
     } else {
         doQuery();
     }

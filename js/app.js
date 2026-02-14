@@ -11,8 +11,8 @@ var firebaseConfig = (typeof window !== 'undefined' && window.firebaseConfig) ? 
 };
 if (!firebase.apps || firebase.apps.length === 0) firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-// Auth anónimo: necesario para que Firestore Rules (request.auth.uid + sessions) permitan acceso
-if (typeof firebase.auth === 'function') {
+// Auth anónimo: solo si no estamos en file:// (referrer null bloquea y llena la consola de errores)
+if (typeof firebase.auth === 'function' && location.protocol !== 'file:') {
     firebase.auth().signInAnonymously().catch(function (err) { console.warn('[Auth] signInAnonymously:', err.message); });
 }
 
@@ -328,7 +328,9 @@ async function loadLoginPlayers() {
     if (!sel) return;
     sel.innerHTML = '<option value="">— Cargando… —</option>';
     try {
-        if (typeof ensureAuthUid === 'function') await ensureAuthUid();
+        if (typeof ensureAuthUid === 'function') {
+            try { await ensureAuthUid(); } catch (_) { /* con reglas permisivas cargamos igual */ }
+        }
         const snap = await db.collection('players').limit(200).get();
         const list = snap.docs
             .map(doc => ({ id: doc.id, ...doc.data() }))
