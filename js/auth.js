@@ -1,15 +1,28 @@
 // ==================== AUTHENTICATION SYSTEM ====================
-// Sistema de autenticación custom usando nombre + PIN
-// Soporta tanto DM como Personajes
+// Nombre + PIN (UX) + Firebase Auth anónimo y sessions/(uid) para Firestore Rules.
 
 let currentUser = null;
 let userType = null; // 'dm' o 'player'
 
+/** Espera a tener un UID de Firebase Auth (anon). Requerido para que las reglas permitan acceso. */
+function ensureAuthUid() {
+    var auth = typeof firebase !== 'undefined' && firebase.auth ? firebase.auth() : null;
+    if (!auth) return Promise.reject(new Error('Firebase Auth no disponible'));
+    if (auth.currentUser && auth.currentUser.uid) return Promise.resolve(auth.currentUser.uid);
+    return new Promise(function (resolve, reject) {
+        var unsub = auth.onAuthStateChanged(function (user) {
+            if (unsub) unsub();
+            if (user && user.uid) resolve(user.uid);
+            else auth.signInAnonymously().then(function () { resolve(auth.currentUser.uid); }).catch(reject);
+        });
+    });
+}
+
 // ==================== DM AUTHENTICATION ====================
 async function loginDM(nombre, pin) {
     try {
-        // Buscar DM en la colección 'dms'
-        const dmsSnapshot = await db.collection('dms')
+        var uid = await ensureAuthUid();
+        var dmsSnapshot = await db.collection('dms')
             .where('nombre', '==', nombre)
             .where('pin', '==', pin)
             .limit(1)
@@ -20,15 +33,11 @@ async function loginDM(nombre, pin) {
             return false;
         }
 
-        const dmDoc = dmsSnapshot.docs[0];
-        currentUser = {
-            id: dmDoc.id,
-            nombre: dmDoc.data().nombre,
-            tipo: 'dm'
-        };
+        var dmDoc = dmsSnapshot.docs[0];
+        currentUser = { id: dmDoc.id, nombre: dmDoc.data().nombre, tipo: 'dm' };
         userType = 'dm';
 
-        // Guardar en sessionStorage
+        await db.collection('sessions').doc(uid).set({ tipo: 'dm', dmId: dmDoc.id });
         sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
         sessionStorage.setItem('userType', 'dm');
 
@@ -43,8 +52,8 @@ async function loginDM(nombre, pin) {
 // ==================== PLAYER AUTHENTICATION ====================
 async function loginPlayer(nombre, pin) {
     try {
-        // Buscar personaje en la colección 'players'
-        const playersSnapshot = await db.collection('players')
+        var uid = await ensureAuthUid();
+        var playersSnapshot = await db.collection('players')
             .where('nombre', '==', nombre)
             .where('pin', '==', pin)
             .limit(1)
@@ -55,13 +64,13 @@ async function loginPlayer(nombre, pin) {
             return false;
         }
 
-        const playerDoc = playersSnapshot.docs[0];
-        const playerData = playerDoc.data();
+        var playerDoc = playersSnapshot.docs[0];
+        var playerData = playerDoc.data();
         if (playerData.visible === false) {
             showToast('Este personaje no está disponible. Contacta al DM.', true);
             return false;
         }
-        
+
         currentUser = {
             id: playerDoc.id,
             nombre: playerData.nombre,
@@ -73,7 +82,7 @@ async function loginPlayer(nombre, pin) {
         };
         userType = 'player';
 
-        // Guardar en sessionStorage
+        await db.collection('sessions').doc(uid).set({ tipo: 'player', playerId: playerDoc.id });
         sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
         sessionStorage.setItem('userType', 'player');
 
@@ -101,8 +110,10 @@ var LOGOUT_MESSAGES = [
 
 function doLogoutNow() {
     if (typeof closeAllSubscriptions === 'function') closeAllSubscriptions();
-    
-    // FIX: Limpiar variables de marcadores del jugador para evitar contaminación entre usuarios
+    var uid = typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser ? firebase.auth().currentUser.uid : null;
+    if (uid && typeof db !== 'undefined') db.collection('sessions').doc(uid).delete().catch(function () {});
+    if (typeof firebase !== 'undefined' && firebase.auth) firebase.auth().signOut().catch(function () {});
+
     if (typeof playerMapMarkers !== 'undefined') playerMapMarkers = [];
     if (typeof playerMapCustomMarkers !== 'undefined') playerMapCustomMarkers = [];
     if (typeof playerDMMapMarkers !== 'undefined') playerDMMapMarkers = [];

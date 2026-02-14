@@ -11,6 +11,10 @@ var firebaseConfig = (typeof window !== 'undefined' && window.firebaseConfig) ? 
 };
 if (!firebase.apps || firebase.apps.length === 0) firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+// Auth anónimo: necesario para que Firestore Rules (request.auth.uid + sessions) permitan acceso
+if (typeof firebase.auth === 'function') {
+    firebase.auth().signInAnonymously().catch(function (err) { console.warn('[Auth] signInAnonymously:', err.message); });
+}
 
 // ==================== CONTADOR DE READS (solo desarrollo / diagnóstico) ====================
 // Ver también: Firebase Console → Firestore → Usage (gráfica de lecturas por día).

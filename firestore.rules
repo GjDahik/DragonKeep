@@ -1,90 +1,128 @@
 rules_version = '2';
-// Reglas de Firestore para DragonKeep (nueva-valdoria).
-// La app usa autenticación custom (nombre + PIN en dms/players), no Firebase Auth,
-// por lo que no se puede restringir por request.auth.uid. Para uso personal/hobby
-// se permite lectura/escritura; mantén el enlace del dashboard privado.
-// Para producción pública considera Firebase App Check o migrar a Firebase Auth.
+// DragonKeep: reglas seguras con Firebase Auth (anon) + sesión por PIN.
+// Requiere: en la app, signInAnonymously() al cargar y escribir sessions/(uid) al hacer login (tipo + dmId/playerId).
+// Deny all por defecto; acceso según request.auth.uid y documento sessions/(uid).
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // DM: login y creación de cuenta
+    // ---------- Helpers ----------
+    function session() {
+      return get(/databases/$(database)/documents/sessions/$(request.auth.uid));
+    }
+    function isDM() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/sessions/$(request.auth.uid))
+        && session().data.tipo == 'dm';
+    }
+    function isPlayer() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/sessions/$(request.auth.uid))
+        && session().data.tipo == 'player';
+    }
+    function sessionPlayerId() {
+      return session().data.playerId;
+    }
+    function sessionDmId() {
+      return session().data.dmId;
+    }
+
+    // ---------- Deny all por defecto ----------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ---------- Sesión: solo el propio uid ----------
+    match /sessions/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // ---------- Login y creación DM/Jugador: cualquier autenticado (anon) ----------
     match /dms/{dmId} {
-      allow read, write: if true;
+      allow read, write: if request.auth != null;
     }
-
-    // Jugadores: login, CRUD por DM, inventario, banco, Cartas del Destino, Mi Casa
     match /players/{playerId} {
-      allow read, write: if true;
+      allow read, write: if request.auth != null;
     }
 
-    // Ciudades, NPCs, tiendas
+    // ---------- Ciudades, NPCs, tiendas: lectura autenticados; escritura solo DM ----------
     match /cities/{cityId} {
-      allow read, write: if true;
+      allow read: if request.auth != null;
+      allow write: if isDM();
       match /playerNotes/{noteId} {
-        allow read, write: if true;
+        allow read, write: if request.auth != null;
       }
     }
+
     match /npcs/{npcId} {
-      allow read, write: if true;
+      allow read: if request.auth != null;
+      allow write: if isDM();
     }
+
     match /shops/{shopId} {
-      allow read, write: if true;
+      allow read: if request.auth != null;
+      allow write: if isDM();
     }
 
-    // Tiendas ambulantes (DM crea/edita; jugador solo lee las activas)
     match /travelingShops/{shopId} {
-      allow read, write: if true;
+      allow read: if request.auth != null;
+      allow write: if isDM();
     }
 
-    // Transacciones (compras, hospedaje, retiros)
     match /transactions/{txId} {
-      allow read, write: if true;
+      allow read, write: if request.auth != null;
     }
 
-    // Notificaciones (cartas a personajes)
     match /notifications/{notifId} {
-      allow read, write: if true;
+      allow read: if request.auth != null;
+      allow write: if isDM();
     }
 
-    // Reglas de mensajes automáticos
     match /automation_rules/{ruleId} {
-      allow read, write: if true;
+      allow read, write: if isDM();
     }
 
-    // Configuración global (mapa, etc.)
     match /settings/{docId} {
-      allow read, write: if true;
+      allow read: if request.auth != null;
+      allow write: if isDM();
     }
 
-    // Misiones: DM crea/edita/visibilidad/completar; jugador acepta/en curso/notas
+    // DM crea/edita/elimina; jugador solo actualiza playerProgress (aceptar, notas, rechazar)
     match /missions/{missionId} {
-      allow read, write: if true;
+      allow read: if request.auth != null;
+      allow create: if isDM();
+      allow update, delete: if isDM() || request.auth != null;
     }
 
-    // Escucha la leyenda: DM añade/edita/elimina audios; jugador solo lectura
     match /legend_audio/{trackId} {
-      allow read, write: if true;
+      allow read: if request.auth != null;
+      allow write: if isDM();
     }
 
-    // Rutas conocidas: DM crea/edita/elimina; jugador solo lectura
     match /rutas_conocidas/{rutaId} {
-      allow read, write: if true;
+      allow read: if request.auth != null;
+      allow write: if isDM();
     }
 
-    // Bitácora de viaje: entradas por jugador (ruta, duración, fecha, notas por noche)
     match /bitacora_viajes/{viajeId} {
-      allow read, write: if true;
+      allow read, write: if request.auth != null;
     }
 
-    // Marcadores del mapa del DM: visibles para todos los aventureros
     match /map_markers/{markerId} {
-      allow read, write: if true;
+      allow read: if request.auth != null;
+      allow write: if isDM();
     }
 
-    // Marcadores del mapa del jugador: por jugador, para sincronizar entre dispositivos
+    // Jugador solo su propio doc (si tiene sesión creada); DM puede leer/escribir todos
     match /player_map_markers/{playerId} {
-      allow read, write: if true;
+      allow read, write: if request.auth != null
+        && (
+          isDM()
+          || (
+            exists(/databases/$(database)/documents/sessions/$(request.auth.uid))
+            && playerId == sessionPlayerId()
+          )
+        );
     }
   }
 }
