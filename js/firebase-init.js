@@ -1,16 +1,17 @@
 // ==================== FIREBASE (solo para index.html / login) ====================
-// En dm-dashboard y player-app se usa el bloque de app.js; este archivo solo se carga en index.html
+// Requiere firebase-config.js antes de este script. dm-dashboard y player-app usan app.js.
 (function () {
     if (typeof firebase === 'undefined') return;
-    if (firebase.apps && firebase.apps.length > 0) return; // ya inicializado
-    const firebaseConfig = {
-        apiKey: "AIzaSyAfOdbG9zqU4ccC_B-ZCUGPnfBDM2KvB-I",
+    if (firebase.apps && firebase.apps.length > 0) return;
+    var conf = (typeof window !== 'undefined' && window.firebaseConfig) ? window.firebaseConfig : {
+        apiKey: "__REPLACE_API_KEY__",
         authDomain: "nueva-valdoria.firebaseapp.com",
         projectId: "nueva-valdoria",
         storageBucket: "nueva-valdoria.firebasestorage.app",
         messagingSenderId: "29742426810",
         appId: "1:29742426810:web:0cf259ba71b0e5f0d8f083"
     };
-    firebase.initializeApp(firebaseConfig);
+    if (!conf.apiKey || conf.apiKey === "__REPLACE_API_KEY__") return;
+    firebase.initializeApp(conf);
     window.db = firebase.firestore();
 })();

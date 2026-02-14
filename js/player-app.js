@@ -1,13 +1,14 @@
 // ==================== FIREBASE CONFIGURATION ====================
-const firebaseConfig = {
-    apiKey: "AIzaSyAfOdbG9zqU4ccC_B-ZCUGPnfBDM2KvB-I",
+// Usa firebase-config.js si está cargado; si no, placeholder. Reemplaza __REPLACE_API_KEY__ al desplegar.
+var firebaseConfig = (typeof window !== 'undefined' && window.firebaseConfig) ? window.firebaseConfig : {
+    apiKey: "__REPLACE_API_KEY__",
     authDomain: "nueva-valdoria.firebaseapp.com",
     projectId: "nueva-valdoria",
     storageBucket: "nueva-valdoria.firebasestorage.app",
     messagingSenderId: "29742426810",
     appId: "1:29742426810:web:0cf259ba71b0e5f0d8f083"
 };
-firebase.initializeApp(firebaseConfig);
+if (!firebase.apps || firebase.apps.length === 0) firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 // ==================== GLOBAL ====================
