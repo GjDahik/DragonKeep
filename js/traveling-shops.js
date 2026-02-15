@@ -12,7 +12,7 @@
     var CERCA_DE_TI = 'Cerca de ti';
     var TIPO_CATALOGO = 'catalogo';
     var TIPO_ANALISIS_OBJETOS = 'analisis_objetos';
-    var TIPOS_LABEL = { catalogo: 'Catálogo', analisis_objetos: 'Análisis de objetos' };
+    var TIPOS_LABEL = { catalogo: 'Tienda de mapas', analisis_objetos: 'Análisis de objetos' };
 
     window.travelingShopsData = [];
     window.playerTravelingShopsData = [];
@@ -33,11 +33,13 @@
             });
     }
 
-    /** Jugador: cargar solo tiendas activas */
+    /** Jugador: cargar tiendas visibles (activa !== false; si no existe el campo, se considera visible) */
     function fetchTravelingShopsPlayer() {
-        return db.collection(COLLECTION).where('activa', '==', true).get()
+        return db.collection(COLLECTION).get()
             .then(function (snap) {
-                window.playerTravelingShopsData = snap && snap.docs ? snap.docs.map(function (d) { return { id: d.id, ...d.data() }; }) : [];
+                var all = snap && snap.docs ? snap.docs.map(function (d) { return { id: d.id, ...d.data() }; }) : [];
+                window.playerTravelingShopsData = all.filter(function (s) { return s.activa !== false; });
+                window.playerTravelingShopsData.sort(function (a, b) { return (a.nombre || '').localeCompare(b.nombre || ''); });
                 renderPlayerTravelingShops();
             })
             .catch(function (err) {
@@ -63,11 +65,13 @@
             var imgUrl = (s.imagenUrl || '').trim();
             var imgHtml = imgUrl ? '<div style="width:100%; height:140px; overflow:hidden; border-radius:8px 8px 0 0; background:#1e1b18;"><img src="' + imgUrl.replace(/"/g, '&quot;') + '" alt="" style="width:100%; height:100%; object-fit:cover;"></div>' : '';
             var verReglasBtn = (s.tipo === TIPO_ANALISIS_OBJETOS) ? '<button type="button" class="btn btn-small btn-secondary" onclick="openTravelingShopVerReglasModal(\'' + id + '\')">🤖 Ver reglas</button>' : '';
+            var addItemBtn = (s.tipo === TIPO_CATALOGO) ? '<button type="button" class="btn btn-small" onclick="openTravelingShopAddItemModal(\'' + id + '\')">➕ Añadir ítem</button>' : '';
             return '<div class="city-card" style="max-width:360px;">' + imgHtml +
                 '<div class="city-header" style="cursor:default;">' +
                 '<div class="city-info" style="flex:1;"><h3>🛒 ' + (s.nombre || 'Tienda') + '</h3>' +
                 '<p style="color:#8b7355; font-size:0.9em;">' + tipoLabel + ' · ' + (visible ? 'Visible' : 'Invisible') + '</p></div></div>' +
                 '<div class="city-actions" style="flex-wrap:wrap; gap:8px;">' +
+                addItemBtn +
                 '<button type="button" class="btn btn-small ' + (isCerca ? 'btn-success' : 'btn-secondary') + '" onclick="toggleTravelingShopLocacion(\'' + id + '\')">📍 ' + (isCerca ? CERCA_DE_TI : LOCACION_DESCONOCIDA) + '</button>' +
                 verReglasBtn +
                 '<button type="button" class="btn btn-small btn-secondary" onclick="editTravelingShop(\'' + id + '\')">✏️ Editar</button>' +
@@ -93,7 +97,7 @@
             var onclick = entra ? 'openTravelingShop(\'' + id + '\')' : 'if(typeof showToast===\'function\')showToast(\'Aún no puedes entrar; ubicación desconocida.\', true)';
             var cardClass = 'player-mistfall-shop-card' + (entra ? '' : ' player-traveling-shop-blocked');
             var esAnalisis = s.tipo === TIPO_ANALISIS_OBJETOS;
-            var tipoDesc = esAnalisis ? 'Análisis de objetos' : 'Catálogo';
+            var tipoDesc = esAnalisis ? 'Análisis de objetos' : 'Tienda de mapas';
             var enterText = entra ? (esAnalisis ? '— Analizar mi inventario →' : '— Entrar a la tienda →') : '— Ubicación desconocida (no puedes entrar)';
             var icon = esAnalisis ? '🔍' : '🛒';
             var locBtnClass = 'btn btn-small ' + (isCerca ? 'btn-success' : 'btn-secondary');
@@ -667,7 +671,14 @@
     var _travelingShopModalItems = [];
 
     function renderTravelingShopModalInventario(items) {
-        _travelingShopModalItems = (items || []).map(function (it) { return { name: it.name || '', price: it.price != null ? it.price : 0 }; });
+        _travelingShopModalItems = (items || []).map(function (it) {
+            return {
+                name: it.name || '',
+                price: it.price != null ? it.price : 0,
+                desc: it.desc || it.description || '',
+                visible: it.visible !== false
+            };
+        });
         var listEl = document.getElementById('traveling-shop-modal-inventario-list');
         if (!listEl) return;
         if (!_travelingShopModalItems.length) {
@@ -675,16 +686,73 @@
             return;
         }
         listEl.innerHTML = _travelingShopModalItems.map(function (item, i) {
-            return '<div class="form-group" style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">' +
-                '<input type="text" class="searchbar" placeholder="Nombre" data-ts-item-name="' + i + '" value="' + (item.name || '').replace(/"/g, '&quot;') + '" style="flex:1;">' +
+            var nameEsc = (item.name || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            var descEsc = (item.desc || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            var visibleChecked = item.visible ? ' checked' : '';
+            return '<div class="form-group" style="margin-bottom:16px; padding:12px; background:rgba(0,0,0,0.2); border-radius:8px; border:1px solid #4a3c31;">' +
+                '<div style="display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap;">' +
+                '<input type="text" class="searchbar" placeholder="Nombre del mapa" data-ts-item-name="' + i + '" value="' + nameEsc + '" style="flex:1; min-width:120px;">' +
                 '<input type="number" class="searchbar" placeholder="GP" data-ts-item-price="' + i + '" value="' + (item.price || 0) + '" min="0" style="width:80px;">' +
-                '<button type="button" class="btn btn-small btn-danger" onclick="travelingShopModalRemoveItem(' + i + ')">Quitar</button></div>';
+                '<button type="button" class="btn btn-small btn-danger" onclick="travelingShopModalRemoveItem(' + i + ')">Quitar</button></div>' +
+                '<label style="color:#8b7355; font-size:0.85em; display:block; margin-bottom:4px;">Descripción del mapa (el jugador la verá en la tienda)</label>' +
+                '<textarea class="searchbar" placeholder="Ej: Señala la cueva del dragón dormido..." data-ts-item-desc="' + i + '" rows="2" style="width:100%; resize:vertical; min-height:50px;">' + descEsc + '</textarea>' +
+                '<label style="display:flex; align-items:center; gap:8px; margin-top:8px; color:#a89878; font-size:0.9em;"><input type="checkbox" data-ts-item-visible="' + i + '"' + visibleChecked + '> Visible para jugadores (si no está marcado, el ítem no aparece en la app del jugador)</label></div>';
         }).join('');
     }
 
-    window.travelingShopModalAddItem = function () {
-        _travelingShopModalItems.push({ name: '', price: 0 });
-        renderTravelingShopModalInventario(_travelingShopModalItems);
+    /** Abre el modal para añadir un ítem a una tienda (fuera del modal Editar). Solo para tiendas tipo catálogo. */
+    window.openTravelingShopAddItemModal = function (shopId) {
+        var shop = (window.travelingShopsData || []).find(function (s) { return s.id === shopId; });
+        if (!shop) return;
+        var titleEl = document.getElementById('traveling-shop-add-item-title');
+        var shopIdEl = document.getElementById('traveling-shop-add-item-shop-id');
+        var nameEl = document.getElementById('traveling-shop-add-item-name');
+        var priceEl = document.getElementById('traveling-shop-add-item-price');
+        var descEl = document.getElementById('traveling-shop-add-item-desc');
+        var visibleEl = document.getElementById('traveling-shop-add-item-visible');
+        if (!titleEl || !shopIdEl || !nameEl || !priceEl) return;
+        shopIdEl.value = shopId;
+        titleEl.textContent = '➕ Añadir ítem a ' + (shop.nombre || 'Tienda de mapas');
+        nameEl.value = '';
+        priceEl.value = '0';
+        if (descEl) descEl.value = '';
+        if (visibleEl) visibleEl.checked = true;
+        if (typeof openModal === 'function') openModal('traveling-shop-add-item-modal');
+    };
+
+    /** Guarda el nuevo ítem en la tienda y cierra el modal. */
+    window.saveTravelingShopAddItem = function () {
+        var shopIdEl = document.getElementById('traveling-shop-add-item-shop-id');
+        var nameEl = document.getElementById('traveling-shop-add-item-name');
+        var priceEl = document.getElementById('traveling-shop-add-item-price');
+        var descEl = document.getElementById('traveling-shop-add-item-desc');
+        var shopId = shopIdEl && shopIdEl.value ? shopIdEl.value.trim() : '';
+        if (!shopId) {
+            if (typeof showToast === 'function') showToast('Error: tienda no indicada', true);
+            return;
+        }
+        var name = nameEl && nameEl.value ? nameEl.value.trim() : '';
+        if (!name) {
+            if (typeof showToast === 'function') showToast('Escribe el nombre del mapa', true);
+            return;
+        }
+        var price = priceEl ? (parseInt(priceEl.value, 10) || 0) : 0;
+        var desc = descEl && descEl.value ? descEl.value.trim() : '';
+        var visibleEl = document.getElementById('traveling-shop-add-item-visible');
+        var visible = visibleEl ? visibleEl.checked : true;
+        var shop = (window.travelingShopsData || []).find(function (s) { return s.id === shopId; });
+        var inventario = Array.isArray(shop && shop.inventario) ? shop.inventario.slice() : [];
+        inventario.push({ name: name, price: price, desc: desc || undefined, visible: visible });
+        db.collection(COLLECTION).doc(shopId).update({ inventario: inventario })
+            .then(function () {
+                if (typeof closeModal === 'function') closeModal('traveling-shop-add-item-modal');
+                if (typeof showToast === 'function') showToast('Ítem añadido');
+                fetchTravelingShopsDM();
+            })
+            .catch(function (err) {
+                console.error(err);
+                if (typeof showToast === 'function') showToast('Error al guardar: ' + (err.message || err), true);
+            });
     };
 
     window.travelingShopModalRemoveItem = function (index) {
@@ -700,9 +768,13 @@
         for (var i = 0; i < nameInputs.length; i++) {
             var nameIn = nameInputs[i];
             var priceIn = listEl.querySelector('[data-ts-item-price="' + i + '"]');
+            var descIn = listEl.querySelector('[data-ts-item-desc="' + i + '"]');
+            var visibleIn = listEl.querySelector('[data-ts-item-visible="' + i + '"]');
             var name = nameIn ? nameIn.value.trim() : '';
             var price = priceIn ? (parseInt(priceIn.value, 10) || 0) : 0;
-            if (name) out.push({ name: name, price: price });
+            var desc = descIn ? descIn.value.trim() : '';
+            var visible = visibleIn ? visibleIn.checked : true;
+            if (name) out.push({ name: name, price: price, desc: desc || undefined, visible: visible });
         }
         return out;
     }
@@ -804,33 +876,254 @@
         }
     };
 
-    /** Jugador: catálogo de ítems que vende la tienda. */
+    /** Carrito tienda de mapas: [{ itemIndex, item: { name, price, effect, rarity, ... }, qty }] */
+    var travelingShopCatalogCart = [];
+    window._travelingShopCatalogShopId = null;
+
+    function itemToCartCopy(item) {
+        var copy = { name: item.name || 'Item', price: item.price != null ? item.price : 0, effect: item.effect || '', rarity: (item.rarity || 'común') };
+        if (item.desc) copy.desc = item.desc;
+        if (item.quantity != null) copy.quantity = item.quantity;
+        return copy;
+    }
+
+    function updateTravelingShopCatalogCart() {
+        var cartEl = document.getElementById('player-shop-catalog-cart');
+        var cartItemsEl = document.getElementById('player-shop-catalog-cart-items');
+        var subtotalEl = document.getElementById('player-shop-catalog-cart-subtotal');
+        var totalEl = document.getElementById('player-shop-catalog-cart-total');
+        var badgeEl = document.getElementById('player-shop-catalog-cart-badge');
+        if (!cartEl || !cartItemsEl) return;
+        if (travelingShopCatalogCart.length === 0) {
+            cartEl.style.display = 'none';
+            if (typeof updateShopCartBadge === 'function') updateShopCartBadge('player-shop-catalog-cart-badge', 0);
+            return;
+        }
+        var totalCount = travelingShopCatalogCart.reduce(function (sum, entry) { return sum + (entry.qty || 1); }, 0);
+        if (typeof updateShopCartBadge === 'function') updateShopCartBadge('player-shop-catalog-cart-badge', totalCount);
+        var subtotal = 0;
+        cartItemsEl.innerHTML = travelingShopCatalogCart.map(function (entry, cartIdx) {
+            var it = entry.item;
+            var qty = entry.qty || 1;
+            var lineTotal = (it.price != null ? it.price : 0) * qty;
+            subtotal += lineTotal;
+            var nameEsc = String(it.name || 'Item').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            var cartIdxEsc = String(cartIdx).replace(/'/g, "\\'");
+            return '<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #4a3c31;">' +
+                '<div style="flex:1;"><div style="color:#d4c4a8; font-weight:bold;">' + nameEsc + '</div>' +
+                '<div style="color:#8b7355; font-size:0.85em;">' + qty + ' × ' + (it.price != null ? it.price : 0) + ' GP</div></div>' +
+                '<div style="display:flex; align-items:center; gap:12px;"><span class="gold-value">' + lineTotal.toLocaleString() + ' GP</span>' +
+                '<button class="btn btn-small btn-danger" onclick="typeof removeFromTravelingShopCatalogCart===\'function\'&&removeFromTravelingShopCatalogCart(' + cartIdx + ')" style="padding:4px 8px; font-size:0.8em;">🗑️</button></div></div>';
+        }).join('');
+        if (subtotalEl) subtotalEl.textContent = subtotal.toLocaleString() + ' GP';
+        if (totalEl) totalEl.textContent = subtotal.toLocaleString() + ' GP';
+        /* No mostrar el panel aquí: solo se ve al pulsar "Ir al carrito" (view-cart), como en la posada */
+    }
+
+    window.addToTravelingShopCatalogCart = function (shopId, itemIndex) {
+        var shop = (window.playerTravelingShopsData || []).find(function (s) { return s.id === shopId; });
+        if (!shop || !shop.inventario || !shop.inventario[itemIndex]) return;
+        var item = shop.inventario[itemIndex];
+        var existing = travelingShopCatalogCart.find(function (e) { return e.itemIndex === itemIndex; });
+        if (existing) {
+            existing.qty = (existing.qty || 1) + 1;
+        } else {
+            travelingShopCatalogCart.push({ itemIndex: itemIndex, item: itemToCartCopy(item), qty: 1 });
+        }
+        updateTravelingShopCatalogCart();
+    };
+
+    window.removeFromTravelingShopCatalogCart = function (cartIndex) {
+        if (cartIndex < 0 || cartIndex >= travelingShopCatalogCart.length) return;
+        travelingShopCatalogCart.splice(cartIndex, 1);
+        updateTravelingShopCatalogCart();
+        if (typeof showToast === 'function') showToast('Eliminado del carrito');
+    };
+
+    window.clearTravelingShopCatalogCart = function () {
+        travelingShopCatalogCart = [];
+        updateTravelingShopCatalogCart();
+        if (typeof showToast === 'function') showToast('Carrito vaciado');
+    };
+
+    /** Jugador: tienda de mapas — listado con Añadir al carrito, carrito y recibo (estilo posada). */
     function openTravelingShopCatalog(shopId) {
         var shop = (window.playerTravelingShopsData || []).find(function (s) { return s.id === shopId; });
         if (!shop) return;
+        window._travelingShopCatalogShopId = shopId;
+        travelingShopCatalogCart = [];
+        var bodyEl = document.getElementById('player-shop-catalog-body');
+        var recEl = document.getElementById('player-shop-catalog-receipt');
         var titleEl = document.getElementById('player-shop-catalog-title');
         var listEl = document.getElementById('player-shop-catalog-list');
+        var oroEl = document.getElementById('player-shop-catalog-oro');
         if (!titleEl || !listEl) return;
-        titleEl.textContent = '📦 ' + (shop.nombre || 'Tienda ambulante');
-        var items = shop.inventario || [];
+        if (bodyEl) { bodyEl.style.display = 'block'; bodyEl.classList.remove('view-cart'); }
+        if (recEl) { recEl.style.display = 'none'; recEl.innerHTML = ''; }
+        titleEl.textContent = '🗺️ ' + (shop.nombre || 'Tienda de mapas');
+        var fullInventario = shop.inventario || [];
+        var visibleWithIndex = [];
+        fullInventario.forEach(function (item, idx) {
+            if (item.visible !== false) visibleWithIndex.push({ item: item, realIndex: idx });
+        });
         var rarityColors = { común: '#2ecc71', inusual: '#3498db', rara: '#9b59b6', legendaria: '#e74c3c' };
-        if (!items.length) {
-            listEl.innerHTML = '<p style="color:#8b7355; text-align:center; padding:30px;">No hay ítems en esta tienda.</p>';
+        if (!visibleWithIndex.length) {
+            listEl.innerHTML = '<p style="color:#8b7355; text-align:center; padding:30px;">No hay ítems visibles en esta tienda.</p>';
         } else {
-            listEl.innerHTML = items.map(function (item) {
+            var shopIdEsc = (shopId || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+            listEl.innerHTML = visibleWithIndex.map(function (entry) {
+                var item = entry.item;
+                var realIdx = entry.realIndex;
                 var desc = (typeof getItemDesc === 'function' ? getItemDesc(item) : null) || (item.desc || '—');
                 var r = (item.rarity || 'común').toLowerCase();
                 if (r === 'infrecuente') r = 'inusual';
-                return '<div class="mini-card" style="margin-bottom:12px;">' +
-                    '<div class="mini-card-title" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">' +
-                    '<span>' + (item.name || 'Item') + '</span>' +
+                var price = item.price != null ? item.price : 0;
+                return '<div class="player-posada-cuarto" style="background:rgba(0,0,0,0.25); border:1px solid #4a3c31; border-radius:10px; padding:16px; margin-bottom:12px;">' +
+                    '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">' +
+                    '<div style="flex:1; min-width:180px;">' +
+                    '<h4 style="color:#d4af37; font-family:\'Cinzel\',serif; margin-bottom:6px;">' + (item.name || 'Item').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</h4>' +
+                    '<p style="color:#8b7355; font-size:0.9em; line-height:1.4;">' + (desc || '—').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</p>' +
                     (item.rarity ? '<span style="background:' + (rarityColors[r] || '#555') + '; padding:2px 8px; border-radius:10px; font-size:0.75em;">' + (r.charAt(0).toUpperCase() + r.slice(1)) + '</span>' : '') +
-                    '</div><div class="mini-card-info" style="min-height:1.2em; color:#d4c4a8;">' + desc + '</div>' +
-                    '<div style="color:#f1c40f; font-weight:600;">' + (item.price != null ? item.price + ' GP' : '—') + '</div></div>';
+                    '</div>' +
+                    '<div style="flex-shrink:0; text-align:right;"><div class="gold-value" style="margin-bottom:8px;">' + (price > 0 ? price + ' GP' : '—') + '</div>' +
+                    '<button type="button" class="btn btn-small" onclick="typeof addToTravelingShopCatalogCart===\'function\'&&addToTravelingShopCatalogCart(\'' + shopIdEsc + '\', ' + realIdx + ')">+ Añadir</button></div></div></div>';
             }).join('');
+        }
+        updateTravelingShopCatalogCart();
+        if (oroEl) {
+            var user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+            if (user && typeof getCurrentPlayerDoc === 'function') {
+                getCurrentPlayerDoc().then(function (doc) {
+                    var oro = (doc.exists && doc.data().oro != null) ? doc.data().oro : 0;
+                    oroEl.innerHTML = '<strong>' + oro.toLocaleString() + '</strong> GP';
+                }).catch(function () { oroEl.innerHTML = '<strong>0</strong> GP'; });
+            } else {
+                oroEl.innerHTML = '<strong>0</strong> GP';
+            }
         }
         if (typeof openModal === 'function') openModal('player-shop-catalog-modal');
     }
+
+    /** Mensajes aleatorios al final del recibo tipo mapa del tesoro. */
+    var TREASURE_MAP_MESSAGES = [
+        'El lugar existe. Lo improbable es que regresen.',
+        'El mapa no miente. El camino sí.',
+        'Donde termina el mapa empieza la aventura.',
+        'Guardad este papel. Algún día os dirá por qué.',
+        'Lo que compraste hoy ya estaba escrito en otro mapa.',
+        'El tesoro era el viaje. El viaje es este recibo.',
+        'Quien sigue la brújula no se pierde. Quien la ignora, tampoco.',
+        'No todos los que buscan encuentran. Tú ya encontraste esto.'
+    ];
+
+    function buildTreasureMapReceiptHTML(opts) {
+        var shopName = opts.shopName || 'Tienda de mapas';
+        var items = opts.items || [];
+        var totalValue = opts.totalValue || '0 GP';
+        var modalId = (opts.modalId || 'player-shop-catalog-modal').replace(/"/g, '&quot;');
+        var esc = function (s) { return String(s || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
+        var now = new Date();
+        var dateStr = now.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
+        var msg = TREASURE_MAP_MESSAGES[Math.floor(Math.random() * TREASURE_MAP_MESSAGES.length)];
+        var rows = items.map(function (i) {
+            return '<div class="player-treasure-map-row"><span class="player-treasure-map-item-name">' + esc(i.name) + '</span><span class="player-treasure-map-item-price">' + esc(i.line) + '</span></div>';
+        }).join('');
+        var closeOnclick = 'closeModal(&quot;' + modalId + '&quot;)';
+        return '<div class="player-treasure-map-receipt">' +
+            '<div class="player-treasure-map-header">' +
+            '<div class="player-treasure-map-logo">🗺️</div>' +
+            '<div class="player-treasure-map-title">MAPA DEL TESORO</div>' +
+            '<div class="player-treasure-map-subtitle">' + esc(shopName) + '</div>' +
+            '</div>' +
+            '<div class="player-treasure-map-body">' + rows + '</div>' +
+            '<div class="player-treasure-map-total"><span>Oro entregado</span><span class="player-treasure-map-total-value">' + esc(totalValue) + '</span></div>' +
+            '<div class="player-treasure-map-date">' + esc(dateStr) + '</div>' +
+            '<div class="player-treasure-map-message">' + esc(msg) + '</div>' +
+            '<button type="button" class="btn player-treasure-map-close" onclick="' + closeOnclick + '">Cerrar</button>' +
+            '</div>';
+    }
+
+    /** Confirmar compra: descuenta oro, añade ítems al inventario y muestra recibo. */
+    window.checkoutTravelingShopCatalog = function () {
+        var user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+        if (!user || !user.id) {
+            if (typeof showToast === 'function') showToast('Debes estar logueado como personaje', true);
+            return;
+        }
+        if (travelingShopCatalogCart.length === 0) {
+            if (typeof showToast === 'function') showToast('Añade algo al carrito para continuar', true);
+            return;
+        }
+        var shopId = window._travelingShopCatalogShopId;
+        var shop = (window.playerTravelingShopsData || []).find(function (s) { return s.id === shopId; });
+        var shopName = (shop && shop.nombre) ? shop.nombre : 'Tienda de mapas';
+        var total = travelingShopCatalogCart.reduce(function (sum, entry) {
+            return sum + (entry.item.price != null ? entry.item.price : 0) * (entry.qty || 1);
+        }, 0);
+        var docRef = db.collection('players').doc(user.id);
+        getCurrentPlayerDoc().then(function (doc) {
+            if (!doc.exists) {
+                if (typeof showToast === 'function') showToast('No se encontró el personaje', true);
+                return Promise.reject(new Error('no doc'));
+            }
+            var data = doc.data();
+            var oro = (data.oro != null ? data.oro : 0);
+            if (oro < total) {
+                if (typeof showToast === 'function') showToast('No tienes suficiente oro. Necesitas ' + total.toLocaleString() + ' GP. Tienes ' + oro.toLocaleString() + ' GP.', true);
+                return Promise.reject(new Error('no oro'));
+            }
+            var newOro = oro - total;
+            var inventario = Array.isArray(data.inventario) ? data.inventario.slice() : [];
+            travelingShopCatalogCart.forEach(function (entry) {
+                var qty = entry.qty || 1;
+                var it = entry.item;
+                for (var i = 0; i < qty; i++) {
+                    var copy = { name: it.name || 'Item', price: it.price, effect: it.effect || '', rarity: it.rarity || 'común' };
+                    if (it.desc) copy.desc = it.desc;
+                    inventario.push(copy);
+                }
+            });
+            return docRef.update({ oro: newOro, inventario: inventario }).then(function () { return { newOro: newOro, total: total }; });
+        }).then(function (result) {
+            if (!result) return;
+            var itemsBought = travelingShopCatalogCart.map(function (entry) {
+                var it = entry.item;
+                return { item: { name: it.name, effect: it.effect || it.desc || '', price: it.price }, qty: entry.qty || 1 };
+            });
+            if (itemsBought.length && typeof runAutomationRules === 'function') {
+                runAutomationRules('traveling_' + shopId, itemsBought, user.id, user.nombre || 'Jugador');
+            }
+            var receiptItems = travelingShopCatalogCart.map(function (entry) {
+                var it = entry.item;
+                var qty = entry.qty || 1;
+                var lineTotal = (it.price != null ? it.price : 0) * qty;
+                return { name: (qty > 1 ? qty + '× ' : '') + (it.name || 'Item'), line: lineTotal.toLocaleString() + ' GP' };
+            });
+            var bodyEl = document.getElementById('player-shop-catalog-body');
+            var recEl = document.getElementById('player-shop-catalog-receipt');
+            if (bodyEl) bodyEl.style.display = 'none';
+            if (recEl) {
+                recEl.innerHTML = buildTreasureMapReceiptHTML({
+                    shopName: shopName,
+                    items: receiptItems,
+                    totalValue: result.total.toLocaleString() + ' GP',
+                    modalId: 'player-shop-catalog-modal'
+                });
+                recEl.style.display = 'block';
+            }
+            travelingShopCatalogCart = [];
+            updateTravelingShopCatalogCart();
+            if (typeof lastPlayerViewData !== 'undefined' && lastPlayerViewData) {
+                lastPlayerViewData.oro = result.newOro;
+                if (typeof renderPlayerView === 'function') renderPlayerView(lastPlayerViewData);
+            }
+            var oroEl = document.getElementById('player-shop-catalog-oro');
+            if (oroEl) oroEl.innerHTML = '<strong>' + result.newOro.toLocaleString() + '</strong> GP';
+            if (typeof showToast === 'function') showToast('Compra realizada. ' + result.total.toLocaleString() + ' GP descontados.');
+        }).catch(function (err) {
+            if (err && err.message !== 'no doc' && err.message !== 'no oro') console.error(err);
+        });
+    };
 
     /** Jugador: análisis de objetos del inventario del personaje (no vende). Incluye buscador por nombre y filtro por rareza. */
     var RARITY_COLORS_ANALISIS = { común: '#2ecc71', inusual: '#3498db', rara: '#9b59b6', legendaria: '#e74c3c' };
@@ -1048,20 +1341,29 @@
     window.renderPlayerTravelingShops = renderPlayerTravelingShops;
     window.renderAnalisisObjetosFiltered = renderAnalisisObjetosFiltered;
 
-    document.addEventListener('DOMContentLoaded', function () {
+    function initTravelingShopsTabs() {
         var dmSection = document.getElementById('traveling-shops');
         var playerSection = document.getElementById('player-traveling-shops');
         if (dmSection) {
+            if (dmSection.classList.contains('active')) fetchTravelingShopsDM();
             var observer = new MutationObserver(function () {
                 if (dmSection.classList.contains('active')) fetchTravelingShopsDM();
             });
             observer.observe(dmSection, { attributes: true, attributeFilter: ['class'] });
         }
         if (playerSection) {
+            if (playerSection.classList.contains('active')) fetchTravelingShopsPlayer();
             var obsPlayer = new MutationObserver(function () {
                 if (playerSection.classList.contains('active')) fetchTravelingShopsPlayer();
             });
             obsPlayer.observe(playerSection, { attributes: true, attributeFilter: ['class'] });
         }
-    });
+    }
+    if (typeof document !== 'undefined') {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initTravelingShopsTabs);
+        } else {
+            initTravelingShopsTabs();
+        }
+    }
 })();

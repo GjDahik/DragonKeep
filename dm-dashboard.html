@@ -54,6 +54,7 @@
                 <button class="nav-tab nav-tab-type-traveling-shops" data-tab="traveling-shops">🛒 Tiendas ambulantes</button>
                 <button class="nav-tab nav-tab-type-notifications" data-tab="notifications">📮 Notificaciones</button>
                 <button class="nav-tab nav-tab-type-missions" data-tab="missions">📋 Misiones</button>
+                <button class="nav-tab nav-tab-type-automation" data-tab="automation">🤖 Reglas automáticas</button>
             </div>
             <div class="nav-tabs-row2">
                 <button class="nav-tab nav-tab-type-transactions" data-tab="transactions">📜 Historial</button>
@@ -234,7 +235,6 @@
             </div>
             <div class="dm-notifications-subtabs">
                 <button type="button" class="dm-notifications-subtab active" data-dm-subtab="enviar" onclick="switchDMNotificationsSubtab('enviar')">📬 Enviar Notificación</button>
-                <button type="button" class="dm-notifications-subtab" data-dm-subtab="automation" onclick="switchDMNotificationsSubtab('automation')">🤖 Mensajes automáticos</button>
                 <button type="button" class="dm-notifications-subtab" data-dm-subtab="historial" onclick="switchDMNotificationsSubtab('historial')">📜 Historial de Notificaciones</button>
             </div>
             <div id="dm-notifications-container">
@@ -267,17 +267,33 @@
                         </div>
                     </div>
                 </div>
-                <div id="dm-notifications-automation-panel" class="dm-notifications-subtab-content" style="display: none;">
-                    <div class="dm-notifications-automation-wrap">
-                        <div class="dm-notifications-automation-header">
-                            <button type="button" class="btn" onclick="openAutomationRuleModal()">+ Nueva regla</button>
-                        </div>
-                        <p class="dm-notifications-automation-desc">Cuando un jugador compre un ítem en una tienda (o rente un cuarto en una posada), se puede enviar un mensaje automático a su correo y, si lo configuras, quitar ese ítem de la tienda.</p>
-                        <div id="automation-rules-list" class="mini-cards">
-                            <p style="color:#8b7355; text-align:center; padding:20px;">Cargando reglas...</p>
-                        </div>
-                    </div>
+            </div>
+        </section>
+
+        <!-- REGLAS AUTOMÁTICAS (DM) -->
+        <section id="automation" class="tab-content">
+            <div class="section-header">
+                <h2>🤖 Reglas automáticas</h2>
+                <button type="button" class="btn" onclick="openAutomationRuleModal()">+ Nueva regla</button>
+            </div>
+            <div style="margin-bottom:16px;">
+                <button type="button" class="btn btn-secondary btn-small automation-help-toggle" id="automation-help-toggle-btn" onclick="toggleAutomationHelp()" aria-expanded="false" aria-controls="automation-help-content">
+                    <span class="automation-help-toggle-label">¿Cómo funciona?</span>
+                    <span class="automation-help-toggle-icon" aria-hidden="true">▼</span>
+                </button>
+                <div id="automation-help-content" class="dm-notifications-automation-desc automation-help-content" style="display:none; color:#8b7355; margin-top:12px; margin-bottom:0; font-size:0.95em;">
+                    <p style="margin:0 0 10px 0;"><strong style="color:#a89878;">Cómo funciona:</strong></p>
+                    <ol style="margin:0; padding-left:20px; line-height:1.5;">
+                        <li><strong>Creas una regla</strong> eligiendo una tienda (o posada), un ítem o cuarto concreto, y el mensaje que quieres que reciba el jugador por correo.</li>
+                        <li><strong>Cuando ese jugador compre ese ítem</strong> (o alquile ese cuarto), el sistema envía automáticamente el mensaje a su correo.</li>
+                        <li><strong>Opcional:</strong> puedes marcar que el ítem se quite de la tienda al comprarse (el ítem pasa al inventario del personaje y deja de estar a la venta).</li>
+                        <li><strong>Opcional:</strong> puedes asociar una misión para que, al comprar ese ítem, la misión se le haga visible al jugador.</li>
+                    </ol>
+                    <p style="margin:10px 0 0 0;">Cada regla aplica a <em>un ítem (o cuarto) concreto</em> en <em>una tienda concreta</em>. Si quieres el mismo mensaje para varios ítems, crea una regla por cada uno.</p>
                 </div>
+            </div>
+            <div id="automation-rules-list" class="mini-cards">
+                <p style="color:#8b7355; text-align:center; padding:20px;">Cargando reglas...</p>
             </div>
         </section>
 
@@ -799,17 +815,42 @@
         </div>
     </div>
 
-    <!-- Modal Catálogo de tienda (vista personaje, solo lectura; usado cuando no es tienda de pociones) -->
+    <!-- Modal Tienda de mapas (estilo posada: carrito + recibo) -->
     <div class="modal-overlay" id="player-shop-catalog-modal">
-        <div class="modal" style="max-width: 560px;">
+        <div class="modal" style="max-width: 800px;">
             <div class="modal-header">
-                <h3 id="player-shop-catalog-title">📦 Catálogo</h3>
+                <h3 id="player-shop-catalog-title">🗺️ Tienda de mapas</h3>
                 <button class="modal-close" onclick="closeModal('player-shop-catalog-modal')">&times;</button>
             </div>
-            <div class="modal-body">
-                <div id="player-shop-catalog-list" style="max-height: 400px; overflow-y: auto;"></div>
+            <div class="modal-body" style="display:flex; flex-direction:column; gap:16px;">
+                <div id="player-shop-catalog-body">
+                    <p id="player-shop-catalog-oro" class="gold-value" style="margin-bottom:16px; font-size:1em;"><strong>0</strong> GP</p>
+                    <div class="player-shop-cart-toggle-row" style="margin-bottom:12px;">
+                        <button type="button" class="btn btn-small player-shop-cart-toggle-btn" onclick="toggleShopCart(this)" data-cart-id="player-shop-catalog-cart" aria-label="Ver carrito"><span class="player-shop-cart-toggle-label-default">🛒 Ir al carrito <span class="player-shop-cart-badge" id="player-shop-catalog-cart-badge" data-count="0">0</span></span><span class="player-shop-cart-toggle-label-back">Seguir comprando</span></button>
+                    </div>
+                    <div id="player-shop-catalog-cart" class="player-posada-cart-panel" style="margin-bottom:20px; padding:16px; background:rgba(0,0,0,0.3); border:1px solid #4a3c31; border-radius:8px; display:none;">
+                        <h4 style="font-family:'Cinzel', serif; color:#d4af37; margin-bottom:12px; text-transform:uppercase; letter-spacing:1px;">🛒 Tu pedido</h4>
+                        <div id="player-shop-catalog-cart-items" style="margin-bottom:12px;"></div>
+                        <div style="border-top:1px solid #4a3c31; padding-top:12px;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                                <span style="color:#8b7355;">Subtotal:</span>
+                                <span id="player-shop-catalog-cart-subtotal" class="gold-value">0 GP</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; border-top:1px solid #4a3c31; padding-top:8px; margin-top:8px;">
+                                <strong style="color:#d4af37; font-size:1.1em;">Total:</strong>
+                                <strong id="player-shop-catalog-cart-total" class="gold-value" style="font-size:1.1em;">0 GP</strong>
+                            </div>
+                        </div>
+                        <div style="margin-top:16px; display:flex; gap:8px;">
+                            <button class="btn btn-secondary btn-small" onclick="typeof clearTravelingShopCatalogCart==='function'&&clearTravelingShopCatalogCart()" style="flex:1;">Vaciar</button>
+                            <button class="btn btn-small" onclick="typeof checkoutTravelingShopCatalog==='function'&&checkoutTravelingShopCatalog()" style="flex:1;">Confirmar compra</button>
+                        </div>
+                    </div>
+                    <div id="player-shop-catalog-list" class="player-posada-cuartos" style="max-height:400px; overflow-y:auto;"></div>
+                </div>
+                <div id="player-shop-catalog-receipt" style="display:none;"></div>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer" id="player-shop-catalog-footer">
                 <button class="btn btn-secondary" onclick="closeModal('player-shop-catalog-modal')">Cerrar</button>
             </div>
         </div>
@@ -1800,11 +1841,15 @@
                 <button class="modal-close" onclick="closeModal('automation-rule-modal')">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
+                <div class="form-group automation-shop-combobox-wrap">
                     <label>Tienda</label>
-                    <select id="automation-rule-shop">
-                        <option value="">— Elige una tienda —</option>
-                    </select>
+                    <div class="automation-shop-combobox">
+                        <input type="text" id="automation-rule-shop-search" class="searchbar" placeholder="Escribe para buscar una tienda..." autocomplete="off" aria-label="Buscar y elegir tienda" aria-expanded="false" aria-haspopup="listbox" aria-controls="automation-rule-shop-dropdown">
+                        <select id="automation-rule-shop" aria-hidden="true" tabindex="-1" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;">
+                            <option value="">— Elige una tienda —</option>
+                        </select>
+                        <ul id="automation-rule-shop-dropdown" class="automation-shop-dropdown" role="listbox" aria-label="Lista de tiendas" style="display:none;"></ul>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Ítem (al comprarse se enviará el mensaje)</label>
@@ -2716,7 +2761,7 @@
                 <div class="form-group">
                     <label>Tipo de tienda</label>
                     <select id="traveling-shop-modal-tipo" class="searchbar" onchange="if(typeof travelingShopModalToggleTipo==='function')travelingShopModalToggleTipo()">
-                        <option value="catalogo">Catálogo (vende ítems)</option>
+                        <option value="catalogo">Tienda de mapas (vende ítems)</option>
                         <option value="analisis_objetos">Análisis de objetos (analiza el inventario del personaje, no vende)</option>
                     </select>
                 </div>
@@ -2735,14 +2780,45 @@
                     </select>
                 </div>
                 <div class="form-group" id="traveling-shop-modal-catalogo-wrap">
-                    <label>Catálogo (ítems que vende)</label>
+                    <label>Ítems que vende (mapas, etc.)</label>
                     <div id="traveling-shop-modal-inventario-list"></div>
-                    <button type="button" class="btn btn-small btn-secondary" onclick="travelingShopModalAddItem()" style="margin-top:8px;">+ Añadir ítem</button>
                 </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeModal('traveling-shop-modal')">Cancelar</button>
                 <button class="btn" onclick="saveTravelingShopModal()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Añadir ítem a tienda ambulante (fuera de Editar) -->
+    <div class="modal-overlay" id="traveling-shop-add-item-modal">
+        <div class="modal" style="max-width: 480px;">
+            <div class="modal-header">
+                <h3 id="traveling-shop-add-item-title">➕ Añadir ítem</h3>
+                <button class="modal-close" onclick="closeModal('traveling-shop-add-item-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="traveling-shop-add-item-shop-id" value="">
+                <div class="form-group">
+                    <label>Nombre del mapa</label>
+                    <input type="text" id="traveling-shop-add-item-name" class="searchbar" placeholder="Ej: Mapa del bosque oscuro">
+                </div>
+                <div class="form-group">
+                    <label>Precio (GP)</label>
+                    <input type="number" id="traveling-shop-add-item-price" class="searchbar" min="0" value="0" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Descripción del mapa (el jugador la verá en la tienda)</label>
+                    <textarea id="traveling-shop-add-item-desc" class="searchbar" rows="3" placeholder="Ej: Señala la cueva del dragón dormido..." style="width:100%; resize:vertical;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label><input type="checkbox" id="traveling-shop-add-item-visible" checked> Visible para jugadores (si no está marcado, el ítem no aparece en la app del jugador)</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('traveling-shop-add-item-modal')">Cancelar</button>
+                <button class="btn" onclick="typeof saveTravelingShopAddItem==='function'&&saveTravelingShopAddItem()">Guardar ítem</button>
             </div>
         </div>
     </div>

@@ -6556,22 +6556,19 @@ function switchPlayerNotificationsSubtab(subtabId) {
     if (subtabId === 'cartas' && typeof loadPlayerNotifications === 'function') loadPlayerNotifications();
 }
 
-// Sub-tabs de Notificaciones (DM): Enviar | Historial | Mensajes automáticos
+// Sub-tabs de Notificaciones (DM): Enviar | Historial (Reglas automáticas tiene su propia pestaña principal)
 function switchDMNotificationsSubtab(subtabId) {
     const section = document.getElementById('notifications');
     if (!section) return;
     const subtabs = section.querySelectorAll('.dm-notifications-subtab');
     const enviarPanel = document.getElementById('dm-notifications-enviar-panel');
     const historialPanel = document.getElementById('dm-notifications-historial-panel');
-    const automationPanel = document.getElementById('dm-notifications-automation-panel');
-    if (!subtabs.length || !enviarPanel || !historialPanel || !automationPanel) return;
+    if (!subtabs.length || !enviarPanel || !historialPanel) return;
     subtabs.forEach(t => {
         t.classList.toggle('active', t.getAttribute('data-dm-subtab') === subtabId);
     });
     enviarPanel.style.display = subtabId === 'enviar' ? 'block' : 'none';
     historialPanel.style.display = subtabId === 'historial' ? 'block' : 'none';
-    automationPanel.style.display = subtabId === 'automation' ? 'block' : 'none';
-    if (subtabId === 'automation' && typeof loadAutomationRulesList === 'function') loadAutomationRulesList();
 }
 
 // ==================== NAVIGATION ====================
@@ -6619,6 +6616,10 @@ document.querySelectorAll('.nav-tab').forEach(tab => {
         if (tab.dataset.tab === 'notifications') {
             if (typeof loadNotificationRecipients === 'function') loadNotificationRecipients();
             if (typeof loadDMNotifications === 'function') loadDMNotifications();
+        }
+        // Si se hace clic en Reglas automáticas, cargar lista de reglas
+        if (tab.dataset.tab === 'automation' && typeof loadAutomationRulesList === 'function') {
+            loadAutomationRulesList();
         }
         // Si se hace clic en el tab de misiones del DM, cargar misiones
         if (tab.dataset.tab === 'missions') {
@@ -6669,6 +6670,11 @@ function toggleShopCart(btn) {
     var cartId = btn.getAttribute('data-cart-id');
     if (cartId === 'player-posada-cart') {
         var body = document.getElementById('player-posada-body');
+        if (body) body.classList.toggle('view-cart');
+        return;
+    }
+    if (cartId === 'player-shop-catalog-cart') {
+        var body = document.getElementById('player-shop-catalog-body');
         if (body) body.classList.toggle('view-cart');
         return;
     }

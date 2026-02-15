@@ -351,6 +351,9 @@ body {
 .nav-tab-type-cities { border-color: #484c50; color: #6c7074; }
 .nav-tab-type-cities:hover { border-color: #585c60; color: #888c90; }
 .nav-tab-type-cities.active { border-color: #585c60; color: #888c90; box-shadow: 0 0 8px rgba(88, 92, 96, 0.25); }
+.nav-tab-type-traveling-shops { border-color: #484c50; color: #6c7074; }
+.nav-tab-type-traveling-shops:hover { border-color: #585c60; color: #888c90; }
+.nav-tab-type-traveling-shops.active { border-color: #585c60; color: #888c90; box-shadow: 0 0 8px rgba(88, 92, 96, 0.25); }
 .nav-tab-type-routes { border-color: #4a5040; color: #6e7464; }
 .nav-tab-type-routes:hover { border-color: #5a6050; color: #8a9080; }
 .nav-tab-type-routes.active { border-color: #5a6050; color: #8a9080; box-shadow: 0 0 8px rgba(90, 96, 80, 0.25); }
@@ -1680,6 +1683,24 @@ body {
     outline: none; border-color: #8b5a2b;
 }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+/* Combobox Tienda (Nueva regla) */
+.automation-shop-combobox-wrap .automation-shop-combobox { position: relative; }
+.automation-shop-combobox .searchbar { margin-bottom: 0; }
+.automation-shop-dropdown {
+    position: absolute; left: 0; right: 0; top: 100%; margin: 0; padding: 0; list-style: none;
+    max-height: 220px; overflow-y: auto; z-index: 100;
+    background: #1a1a1a; border: 1px solid #4a3c31; border-top: none; border-radius: 0 0 6px 6px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+}
+.automation-shop-dropdown li {
+    padding: 10px 12px; cursor: pointer; color: #d4c4a8; font-family: 'Crimson Text', serif;
+    border-bottom: 1px solid #2a2a2a;
+}
+.automation-shop-dropdown li:last-child { border-bottom: none; }
+.automation-shop-dropdown li:hover,
+.automation-shop-dropdown li[aria-selected="true"] { background: #2a2520; color: #d4af37; }
+.automation-shop-dropdown li[data-empty] { cursor: default; color: #8b7355; font-style: italic; }
 
 /* Modal Banco (jugador) */
 .player-banco-modal .modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
@@ -3196,6 +3217,114 @@ body {
 .player-shop-receipt-close { width: 100%; margin-top: 20px; padding: 12px; background: #4a3a3a; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-family: inherit; }
 .player-shop-receipt-close:hover { background: #6a5a5a; }
 
+/* Recibo tipo mapa del tesoro (Tienda de mapas) */
+.player-treasure-map-receipt {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 28px 32px 32px;
+    background: linear-gradient(145deg, #e8dcc8 0%, #d4c4a8 50%, #c9b896 100%);
+    color: #3d3525;
+    font-family: 'Cinzel', Georgia, serif;
+    border: 3px solid #8b7355;
+    border-radius: 4px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.3);
+    position: relative;
+}
+.player-treasure-map-receipt::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border-radius: 2px;
+    pointer-events: none;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.6;
+}
+.player-treasure-map-header {
+    text-align: center;
+    border-bottom: 2px solid #8b7355;
+    padding-bottom: 14px;
+    margin-bottom: 16px;
+    position: relative;
+}
+.player-treasure-map-logo {
+    font-size: 2.2em;
+    margin-bottom: 4px;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+}
+.player-treasure-map-title {
+    font-size: 1.15em;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: #2a2018;
+    text-transform: uppercase;
+}
+.player-treasure-map-subtitle {
+    font-size: 0.85em;
+    color: #5c4d3a;
+    margin-top: 6px;
+    font-style: italic;
+}
+.player-treasure-map-body {
+    margin: 14px 0;
+    position: relative;
+}
+.player-treasure-map-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px dashed #9a8b72;
+    font-size: 0.95em;
+}
+.player-treasure-map-item-name { flex: 1; color: #3d3525; }
+.player-treasure-map-item-price { color: #5c4520; font-weight: 600; }
+.player-treasure-map-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-top: 2px solid #8b7355;
+    margin-top: 8px;
+    font-size: 1.1em;
+    font-weight: 700;
+    color: #2a2018;
+    position: relative;
+}
+.player-treasure-map-total-value { color: #6b4423; }
+.player-treasure-map-date {
+    text-align: center;
+    font-size: 0.8em;
+    color: #6b5d4a;
+    margin-top: 16px;
+    position: relative;
+}
+.player-treasure-map-message {
+    text-align: center;
+    font-size: 0.95em;
+    font-style: italic;
+    color: #4a4035;
+    margin-top: 20px;
+    padding: 14px 12px;
+    line-height: 1.45;
+    border-top: 1px dashed #9a8b72;
+    position: relative;
+}
+.player-treasure-map-close {
+    width: 100%;
+    margin-top: 22px;
+    padding: 12px;
+    background: #5c4a32;
+    color: #e8dcc8;
+    border: 2px solid #8b7355;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    position: relative;
+}
+.player-treasure-map-close:hover {
+    background: #6b5a42;
+    color: #f0e6d4;
+}
+
 /* Búsqueda y filtros unificados en todas las tiendas */
 .player-shop-search-wrap {
     display: block !important;
@@ -3397,6 +3526,24 @@ body {
     display: none;
 }
 #player-posada-body.view-cart .player-shop-cart-toggle-label-back {
+    display: inline;
+}
+
+/* Tienda de mapas (traveling): vista solo carrito, igual que posada */
+#player-shop-catalog-body.view-cart #player-shop-catalog-oro,
+#player-shop-catalog-body.view-cart #player-shop-catalog-list {
+    display: none !important;
+}
+#player-shop-catalog-body.view-cart #player-shop-catalog-cart {
+    display: block !important;
+}
+#player-shop-catalog-body .player-shop-cart-toggle-label-back {
+    display: none;
+}
+#player-shop-catalog-body.view-cart .player-shop-cart-toggle-label-default {
+    display: none;
+}
+#player-shop-catalog-body.view-cart .player-shop-cart-toggle-label-back {
     display: inline;
 }
 

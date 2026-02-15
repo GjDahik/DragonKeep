@@ -212,8 +212,14 @@ async function runAutomationRules(shopId, itemsBought, playerId, playerName) {
 
         if (rule.removeFromShop) {
             if (shopInv === null) {
-                const shopSnap = await db.collection('shops').doc(shopId).get();
-                shopInv = (shopSnap.exists && shopSnap.data().inventario) ? shopSnap.data().inventario.slice() : [];
+                if (shopId.startsWith(AUTOMATION_TRAVELING_PREFIX)) {
+                    const realId = shopId.slice(AUTOMATION_TRAVELING_PREFIX.length);
+                    const tsSnap = await db.collection('travelingShops').doc(realId).get();
+                    shopInv = (tsSnap.exists && tsSnap.data().inventario) ? tsSnap.data().inventario.slice() : [];
+                } else {
+                    const shopSnap = await db.collection('shops').doc(shopId).get();
+                    shopInv = (shopSnap.exists && shopSnap.data().inventario) ? shopSnap.data().inventario.slice() : [];
+                }
             }
             const idx = shopInv.findIndex(x => automationItemSignature(x) === sig);
             if (idx >= 0) {
@@ -231,7 +237,12 @@ async function runAutomationRules(shopId, itemsBought, playerId, playerName) {
 
     if (shopInvDirty && shopInv) {
         try {
-            await db.collection('shops').doc(shopId).update({ inventario: shopInv });
+            if (shopId.startsWith(AUTOMATION_TRAVELING_PREFIX)) {
+                const realId = shopId.slice(AUTOMATION_TRAVELING_PREFIX.length);
+                await db.collection('travelingShops').doc(realId).update({ inventario: shopInv });
+            } else {
+                await db.collection('shops').doc(shopId).update({ inventario: shopInv });
+            }
         } catch (e) {
             console.error('Automation: error actualizando inventario tienda', e);
         }
@@ -301,28 +312,38 @@ function getPosadaRooms(shop) {
     return def;
 }
 
-/** Carga todas las tiendas desde Firestore si shopsData está vacío (para que los dropdowns tengan datos). */
+const AUTOMATION_TRAVELING_PREFIX = 'traveling_';
+
+/** Carga todas las tiendas (ciudad + ambulantes) para que los dropdowns tengan datos. */
 function ensureShopsLoadedForAutomation() {
     const sh = (typeof window.shopsData !== 'undefined' ? window.shopsData : (typeof shopsData !== 'undefined' ? shopsData : [])) || [];
-    if (sh.length > 0) return Promise.resolve();
-    if (typeof db === 'undefined') return Promise.resolve();
-    return db.collection('shops').limit(400).get().then(snap => {
+    let p = sh.length > 0 ? Promise.resolve() : (typeof db === 'undefined' ? Promise.resolve() : db.collection('shops').limit(400).get().then(snap => {
         const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         window.shopsData = list;
         if (typeof shopsData !== 'undefined') { try { shopsData = list; } catch (e) {} }
-    }).catch(() => {});
+    }).catch(() => {}));
+    const needTraveling = !window.travelingShopsData || !window.travelingShopsData.length;
+    if (needTraveling && typeof window.fetchTravelingShopsDM === 'function') {
+        p = Promise.all([p, window.fetchTravelingShopsDM()]);
+    }
+    return p;
 }
 
-/** Tiendas que pueden tener reglas: con inventario (pociones, forja, etc.) o posadas (cuartos). */
+/** Tiendas que pueden tener reglas: ciudad (inventario/posada) + tiendas ambulantes tipo catálogo. */
 function automationShopsForRules() {
     const sh = (typeof window.shopsData !== 'undefined' ? window.shopsData : (typeof shopsData !== 'undefined' ? shopsData : [])) || [];
-    return sh.filter(s => {
+    const cityShops = sh.filter(s => {
         const t = (s.tipo || '').toLowerCase();
         if (AUTOMATION_NO_INV.includes(t)) return false;
         if (t === 'posada') return getPosadaRooms(s).length > 0;
         const inv = s.inventario || [];
         return inv.length > 0;
     });
+    const traveling = (typeof window.travelingShopsData !== 'undefined' ? window.travelingShopsData : []) || [];
+    const travelingShops = traveling
+        .filter(s => ((s.tipo || '').toLowerCase() === 'catalogo') && (s.inventario && s.inventario.length))
+        .map(s => ({ id: AUTOMATION_TRAVELING_PREFIX + s.id, nombre: s.nombre || 'Tienda de mapas', inventario: s.inventario || [], tipo: 'traveling_mapas', _realId: s.id }));
+    return cityShops.concat(travelingShops);
 }
 
 function loadAutomationRulesList() {
@@ -330,14 +351,27 @@ function loadAutomationRulesList() {
     if (!el) return;
     el.innerHTML = '<p style="color:#8b7355; text-align:center; padding:20px;">Cargando reglas...</p>';
     loadAllAutomationRules().then(async rules => {
+        // Solo reglas de compra/alquiler (tiendas y posadas). Las de Análisis de objetos son propias de cada tienda y no se listan aquí.
+        const listRules = rules.filter(r => r.sourceType !== SOURCE_TRAVELING_ANALISIS);
         const sh = (typeof window.shopsData !== 'undefined' ? window.shopsData : (typeof shopsData !== 'undefined' ? shopsData : [])) || [];
-        const shopName = id => (sh.find(s => s.id === id) || {}).nombre || '?';
-        const shopTipo = id => (sh.find(s => s.id === id) || {}).tipo || '';
-        if (!rules.length) {
+        const traveling = (typeof window.travelingShopsData !== 'undefined' ? window.travelingShopsData : []) || [];
+        const shopName = id => {
+            if (id && id.startsWith(AUTOMATION_TRAVELING_PREFIX)) {
+                const realId = id.slice(AUTOMATION_TRAVELING_PREFIX.length);
+                const t = traveling.find(s => s.id === realId);
+                return (t && t.nombre) ? t.nombre : '?';
+            }
+            return (sh.find(s => s.id === id) || {}).nombre || '?';
+        };
+        const shopTipo = id => {
+            if (id && id.startsWith(AUTOMATION_TRAVELING_PREFIX)) return 'traveling_mapas';
+            return (sh.find(s => s.id === id) || {}).tipo || '';
+        };
+        if (!listRules.length) {
             el.innerHTML = '<p style="color:#8b7355; text-align:center; padding:24px;">No hay reglas. Crea una con "Nueva regla".</p>';
             return;
         }
-        const missionIds = [...new Set(rules.filter(r => r.missionId).map(r => r.missionId))];
+        const missionIds = [...new Set(listRules.filter(r => r.missionId).map(r => r.missionId))];
         const missionTitles = {};
         if (missionIds.length) {
             await Promise.all(missionIds.map(async mid => {
@@ -346,17 +380,20 @@ function loadAutomationRulesList() {
             }));
         }
         const esc = s => String(s || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-        el.innerHTML = rules.map(r => {
+        el.innerHTML = listRules.map(r => {
             const msg = (r.message || '').trim();
             const preview = msg.length > 80 ? msg.slice(0, 80) + '…' : msg;
-            const isPosada = (shopTipo(r.shopId) || '').toLowerCase() === 'posada';
+            const tipo = shopTipo(r.shopId) || '';
+            const isPosada = tipo.toLowerCase() === 'posada';
+            const isTraveling = tipo === 'traveling_mapas';
             const priceLabel = isPosada ? (r.itemPrice != null ? ' — ' + r.itemPrice + ' GP/noche' : '') : (r.itemPrice != null ? ' — ' + r.itemPrice + ' GP' : '');
             const remove = !isPosada && r.removeFromShop ? ' <span style="color:#8b7355; font-size:0.85em;">· Quitar de tienda</span>' : '';
             const missionLabel = r.missionId ? ` <span style="color:#8fbc8f; font-size:0.85em;">→ Desbloquea misión: ${esc(missionTitles[r.missionId] || '?')}</span>` : '';
+            const shopLabel = isPosada ? ' <span style="color:#6b5d4a;">· Posada</span>' : (isTraveling ? ' <span style="color:#6b5d4a;">· Tienda ambulante</span>' : '');
             return `<div class="mini-card" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
                 <div style="flex:1; min-width:0;">
                     <div class="mini-card-title" style="margin-bottom:4px;">${esc(r.itemName || '?')}${priceLabel}</div>
-                    <div style="color:#8b7355; font-size:0.9em; margin-bottom:6px;">${esc(shopName(r.shopId))}${isPosada ? ' <span style="color:#6b5d4a;">· Posada</span>' : ''}${remove}${missionLabel}</div>
+                    <div style="color:#8b7355; font-size:0.9em; margin-bottom:6px;">${esc(shopName(r.shopId))}${shopLabel}${remove}${missionLabel}</div>
                     <div style="color:#a89878; font-size:0.9em; white-space:pre-wrap; line-height:1.4;">${esc(preview)}</div>
                 </div>
                 <div style="display:flex; gap:8px; flex-shrink:0;">
@@ -412,6 +449,56 @@ function openAutomationRuleModal(ruleForEdit) {
     });
 }
 
+function _shopLabel(s) {
+    const n = s.nombre || 'Sin nombre';
+    const posada = (s.tipo || '').toLowerCase() === 'posada';
+    const traveling = (s.tipo || '') === 'traveling_mapas';
+    const suffix = posada ? ' 🏨' : (traveling ? ' 🗺️' : '');
+    return n + suffix;
+}
+
+function _filterShopsByQuery(shops, query) {
+    const q = (query || '').trim().toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
+    if (!q) return shops;
+    return shops.filter(s => {
+        const nombre = (s.nombre || 'Sin nombre').toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
+        const tipo = (s.tipo || '').toLowerCase();
+        const tipoLabel = tipo === 'posada' ? 'posada' : (tipo === 'traveling_mapas' ? 'ambulante' : '');
+        return nombre.indexOf(q) !== -1 || (tipoLabel && tipoLabel.indexOf(q) !== -1);
+    });
+}
+
+function _openAutomationShopDropdown(shopSearchEl, dropdownEl, shopSel, shops, itemSel, removeWrap) {
+    const query = (shopSearchEl && shopSearchEl.value) ? shopSearchEl.value.trim() : '';
+    const list = _filterShopsByQuery(shops, query);
+    if (!dropdownEl) return;
+    dropdownEl.innerHTML = '';
+    if (list.length === 0) {
+        const li = document.createElement('li');
+        li.setAttribute('data-empty', '1');
+        li.textContent = 'No hay tiendas que coincidan';
+        dropdownEl.appendChild(li);
+    } else {
+        list.forEach(s => {
+            const li = document.createElement('li');
+            li.setAttribute('role', 'option');
+            li.setAttribute('data-shop-id', s.id);
+            li.textContent = _shopLabel(s);
+            li.onmousedown = (e) => {
+                e.preventDefault();
+                shopSel.value = s.id;
+                if (shopSearchEl) shopSearchEl.value = _shopLabel(s);
+                dropdownEl.style.display = 'none';
+                if (shopSearchEl) shopSearchEl.setAttribute('aria-expanded', 'false');
+                _populateAutomationItemsForShop(shopSel, itemSel, removeWrap, shops);
+            };
+            dropdownEl.appendChild(li);
+        });
+    }
+    dropdownEl.style.display = 'block';
+    if (shopSearchEl) shopSearchEl.setAttribute('aria-expanded', 'true');
+}
+
 function _openAutomationRuleModalInner(ruleForEdit, shopSel, itemSel, msgEl, removeEl, removeWrap, missionSel, titleEl) {
     const shops = automationShopsForRules();
     const isEdit = !!ruleForEdit;
@@ -420,13 +507,44 @@ function _openAutomationRuleModalInner(ruleForEdit, shopSel, itemSel, msgEl, rem
 
     if (titleEl) titleEl.textContent = isEdit ? '✏️ Editar regla' : '🤖 Nueva regla';
 
+    // Select con todas las tiendas (oculto); solo guardamos el valor elegido
     shopSel.innerHTML = '<option value="">— Elige una tienda —</option>' + shops.map(s => {
         const n = (s.nombre || 'Sin nombre').replace(/"/g, '&quot;');
         const posada = (s.tipo || '').toLowerCase() === 'posada';
-        return `<option value="${s.id}">${n}${posada ? ' 🏨' : ''}</option>`;
+        const traveling = (s.tipo || '') === 'traveling_mapas';
+        const suffix = posada ? ' 🏨' : (traveling ? ' 🗺️' : '');
+        return `<option value="${s.id}">${n}${suffix}</option>`;
     }).join('');
 
-    shopSel.onchange = () => _populateAutomationItemsForShop(shopSel, itemSel, removeWrap, shops);
+    const shopSearchEl = document.getElementById('automation-rule-shop-search');
+    const dropdownEl = document.getElementById('automation-rule-shop-dropdown');
+    let dropdownBlurTimer = null;
+
+    if (shopSearchEl && dropdownEl) {
+        shopSearchEl.value = '';
+        shopSearchEl.setAttribute('aria-expanded', 'false');
+        dropdownEl.style.display = 'none';
+
+        shopSearchEl.onfocus = () => {
+            if (dropdownBlurTimer) clearTimeout(dropdownBlurTimer);
+            _openAutomationShopDropdown(shopSearchEl, dropdownEl, shopSel, shops, itemSel, removeWrap);
+        };
+        shopSearchEl.oninput = () => {
+            _openAutomationShopDropdown(shopSearchEl, dropdownEl, shopSel, shops, itemSel, removeWrap);
+        };
+        shopSearchEl.onblur = () => {
+            dropdownBlurTimer = setTimeout(() => {
+                dropdownEl.style.display = 'none';
+                shopSearchEl.setAttribute('aria-expanded', 'false');
+            }, 200);
+        };
+    }
+
+    // En edición, mostrar la tienda ya elegida en el buscador
+    if (isEdit && ruleForEdit.shopId && shopSearchEl) {
+        const shop = shops.find(s => s.id === ruleForEdit.shopId);
+        if (shop) shopSearchEl.value = _shopLabel(shop);
+    }
 
     if (missionSel) {
         missionSel.innerHTML = '<option value="">— Ninguna —</option>';
@@ -536,6 +654,19 @@ function saveAutomationRule() {
     });
 }
 
+function toggleAutomationHelp() {
+    const content = document.getElementById('automation-help-content');
+    const btn = document.getElementById('automation-help-toggle-btn');
+    if (!content || !btn) return;
+    const isHidden = content.style.display === 'none';
+    content.style.display = isHidden ? 'block' : 'none';
+    btn.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+    const label = btn.querySelector('.automation-help-toggle-label');
+    const icon = btn.querySelector('.automation-help-toggle-icon');
+    if (label) label.textContent = isHidden ? 'Ocultar' : '¿Cómo funciona?';
+    if (icon) icon.textContent = isHidden ? '▲' : '▼';
+}
+
 window.openAutomationRuleModal = openAutomationRuleModal;
 window.saveAutomationRule = saveAutomationRule;
 window.editAutomationRule = editAutomationRule;
@@ -549,3 +680,4 @@ window.updateTravelingAnalisisRule = updateTravelingAnalisisRule;
 window.runAutomationRulesForPlayerUse = runAutomationRulesForPlayerUse;
 window.automationItemSignature = automationItemSignature;
 window.getPosadaRooms = getPosadaRooms;
+window.toggleAutomationHelp = toggleAutomationHelp;
