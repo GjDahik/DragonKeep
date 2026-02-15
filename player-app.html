@@ -2260,7 +2260,7 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeModal('traveling-shop-add-item-modal')">Cancelar</button>
-                <button class="btn" onclick="typeof saveTravelingShopAddItem==='function'&&saveTravelingShopAddItem()">Guardar ítem</button>
+                <button type="button" class="btn" onclick="if(typeof saveTravelingShopAddItem==='function'){ saveTravelingShopAddItem(); } else { alert('Recarga la página e inténtalo de nuevo.'); }">Guardar ítem</button>
             </div>
         </div>
     </div>

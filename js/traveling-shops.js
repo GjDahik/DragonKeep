@@ -731,6 +731,11 @@
             if (typeof showToast === 'function') showToast('Error: tienda no indicada', true);
             return;
         }
+        var shop = (window.travelingShopsData || []).find(function (s) { return s.id === shopId; });
+        if (!shop) {
+            if (typeof showToast === 'function') showToast('Tienda no encontrada. Cierra el modal y vuelve a abrir la tienda.', true);
+            return;
+        }
         var name = nameEl && nameEl.value ? nameEl.value.trim() : '';
         if (!name) {
             if (typeof showToast === 'function') showToast('Escribe el nombre del mapa', true);
@@ -740,10 +745,11 @@
         var desc = descEl && descEl.value ? descEl.value.trim() : '';
         var visibleEl = document.getElementById('traveling-shop-add-item-visible');
         var visible = visibleEl ? visibleEl.checked : true;
-        var shop = (window.travelingShopsData || []).find(function (s) { return s.id === shopId; });
-        var inventario = Array.isArray(shop && shop.inventario) ? shop.inventario.slice() : [];
-        inventario.push({ name: name, price: price, desc: desc || undefined, visible: visible });
-        db.collection(COLLECTION).doc(shopId).update({ inventario: inventario })
+        var inventario = Array.isArray(shop.inventario) ? shop.inventario.slice() : [];
+        var newItem = { name: name, price: price, visible: visible };
+        if (desc) newItem.desc = desc;
+        inventario.push(newItem);
+        db.collection(COLLECTION).doc(shopId).update({ inventario: sanitizeInventarioForFirestore(inventario) })
             .then(function () {
                 if (typeof closeModal === 'function') closeModal('traveling-shop-add-item-modal');
                 if (typeof showToast === 'function') showToast('Ítem añadido');
@@ -760,6 +766,16 @@
         renderTravelingShopModalInventario(_travelingShopModalItems);
     };
 
+    /** Devuelve inventario sin valores undefined (Firestore no los acepta). */
+    function sanitizeInventarioForFirestore(arr) {
+        if (!Array.isArray(arr)) return [];
+        return arr.map(function (it) {
+            var o = { name: it.name || '', price: it.price != null ? it.price : 0, visible: it.visible !== false };
+            if (it.desc) o.desc = it.desc;
+            return o;
+        });
+    }
+
     function collectTravelingShopFormInventario() {
         var listEl = document.getElementById('traveling-shop-modal-inventario-list');
         if (!listEl) return [];
@@ -774,7 +790,11 @@
             var price = priceIn ? (parseInt(priceIn.value, 10) || 0) : 0;
             var desc = descIn ? descIn.value.trim() : '';
             var visible = visibleIn ? visibleIn.checked : true;
-            if (name) out.push({ name: name, price: price, desc: desc || undefined, visible: visible });
+            if (name) {
+                var item = { name: name, price: price, visible: visible };
+                if (desc) item.desc = desc;
+                out.push(item);
+            }
         }
         return out;
     }
@@ -803,7 +823,7 @@
             imagenUrl: imagenUrl,
             activa: activa,
             locacionMensaje: locacionMensaje,
-            inventario: tipo === TIPO_ANALISIS_OBJETOS ? [] : collectTravelingShopFormInventario()
+            inventario: tipo === TIPO_ANALISIS_OBJETOS ? [] : sanitizeInventarioForFirestore(collectTravelingShopFormInventario())
         };
         var p = id
             ? db.collection(COLLECTION).doc(id).update(payload)
