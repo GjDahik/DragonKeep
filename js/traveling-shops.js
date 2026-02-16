@@ -12,7 +12,9 @@
     var CERCA_DE_TI = 'Cerca de ti';
     var TIPO_CATALOGO = 'catalogo';
     var TIPO_ANALISIS_OBJETOS = 'analisis_objetos';
-    var TIPOS_LABEL = { catalogo: 'Tienda de mapas', analisis_objetos: 'Análisis de objetos' };
+    var TIPO_CONTRATOS = 'contratos';
+    var TIPO_CASINO = 'casino';
+    var TIPOS_LABEL = { catalogo: 'Tienda de mapas', analisis_objetos: 'Análisis de objetos', contratos: 'Encargos · Contratos · Entregas Diferidas', casino: 'Casino' };
 
     window.travelingShopsData = [];
     window.playerTravelingShopsData = [];
@@ -66,12 +68,16 @@
             var imgHtml = imgUrl ? '<div style="width:100%; height:140px; overflow:hidden; border-radius:8px 8px 0 0; background:#1e1b18;"><img src="' + imgUrl.replace(/"/g, '&quot;') + '" alt="" style="width:100%; height:100%; object-fit:cover;"></div>' : '';
             var verReglasBtn = (s.tipo === TIPO_ANALISIS_OBJETOS) ? '<button type="button" class="btn btn-small btn-secondary" onclick="openTravelingShopVerReglasModal(\'' + id + '\')">🤖 Ver reglas</button>' : '';
             var addItemBtn = (s.tipo === TIPO_CATALOGO) ? '<button type="button" class="btn btn-small" onclick="openTravelingShopAddItemModal(\'' + id + '\')">➕ Añadir ítem</button>' : '';
+            var addContractBtn = (s.tipo === TIPO_CONTRATOS) ? '<button type="button" class="btn btn-small" onclick="openTravelingShopAddContractModal(\'' + id + '\')">➕ Añadir contrato</button>' : '';
+            var casinoBetsBtn = (s.tipo === TIPO_CASINO) ? '<button type="button" class="btn btn-small" onclick="typeof openCasinoBetsModal===\'function\'&&openCasinoBetsModal(\'' + id + '\')">🎲 Ver apuestas</button>' : '';
             return '<div class="city-card" style="max-width:360px;">' + imgHtml +
                 '<div class="city-header" style="cursor:default;">' +
                 '<div class="city-info" style="flex:1;"><h3>🛒 ' + (s.nombre || 'Tienda') + '</h3>' +
                 '<p style="color:#8b7355; font-size:0.9em;">' + tipoLabel + ' · ' + (visible ? 'Visible' : 'Invisible') + '</p></div></div>' +
                 '<div class="city-actions" style="flex-wrap:wrap; gap:8px;">' +
                 addItemBtn +
+                addContractBtn +
+                casinoBetsBtn +
                 '<button type="button" class="btn btn-small ' + (isCerca ? 'btn-success' : 'btn-secondary') + '" onclick="toggleTravelingShopLocacion(\'' + id + '\')">📍 ' + (isCerca ? CERCA_DE_TI : LOCACION_DESCONOCIDA) + '</button>' +
                 verReglasBtn +
                 '<button type="button" class="btn btn-small btn-secondary" onclick="editTravelingShop(\'' + id + '\')">✏️ Editar</button>' +
@@ -97,9 +103,11 @@
             var onclick = entra ? 'openTravelingShop(\'' + id + '\')' : 'if(typeof showToast===\'function\')showToast(\'Aún no puedes entrar; ubicación desconocida.\', true)';
             var cardClass = 'player-mistfall-shop-card' + (entra ? '' : ' player-traveling-shop-blocked');
             var esAnalisis = s.tipo === TIPO_ANALISIS_OBJETOS;
-            var tipoDesc = esAnalisis ? 'Análisis de objetos' : 'Tienda de mapas';
-            var enterText = entra ? (esAnalisis ? '— Analizar mi inventario →' : '— Entrar a la tienda →') : '— Ubicación desconocida (no puedes entrar)';
-            var icon = esAnalisis ? '🔍' : '🛒';
+            var esContratos = s.tipo === TIPO_CONTRATOS;
+            var esCasino = s.tipo === TIPO_CASINO;
+            var tipoDesc = esAnalisis ? 'Análisis de objetos' : (esContratos ? 'Contratos · Entregas diferidas' : (esCasino ? 'Casino' : 'Tienda de mapas'));
+            var enterText = entra ? (esAnalisis ? '— Analizar mi inventario →' : (esContratos ? '— Ver contratos →' : (esCasino ? '— Entrar al casino →' : '— Entrar a la tienda →'))) : '— Ubicación desconocida (no puedes entrar)';
+            var icon = esAnalisis ? '🔍' : (esContratos ? '📜' : (esCasino ? '🎲' : '🗺️'));
             var locBtnClass = 'btn btn-small ' + (isCerca ? 'btn-success' : 'btn-secondary');
             var imgUrl = (s.imagenUrl || '').trim();
             var imgHtml = imgUrl ? '<div style="width:100%; height:120px; overflow:hidden; border-radius:8px 8px 0 0; background:#1e1b18;"><img src="' + imgUrl.replace(/"/g, '&quot;') + '" alt="" style="width:100%; height:100%; object-fit:cover;"></div>' : '';
@@ -137,7 +145,15 @@
                 if (imagenEl) imagenEl.value = (s.imagenUrl || '').trim();
                 visibleEl.checked = s.activa !== false;
                 if (locacionEl) locacionEl.value = s.locacionMensaje || LOCACION_DESCONOCIDA;
-                renderTravelingShopModalInventario(s.inventario || []);
+                if (s.tipo === TIPO_CONTRATOS) {
+                    window._travelingShopMissions = [];
+                    db.collection('missions').where('status', 'in', ['draft', 'visible']).limit(200).get().then(function (snap) {
+                        window._travelingShopMissions = snap.docs.map(function (d) { var data = d.data(); return { id: d.id, title: data.title || 'Sin título' }; });
+                        renderTravelingShopModalInventario(s.inventario || []);
+                    }).catch(function () { renderTravelingShopModalInventario(s.inventario || []); });
+                } else {
+                    renderTravelingShopModalInventario(s.inventario || []);
+                }
             }
         } else {
             nombreEl.value = '';
@@ -154,8 +170,12 @@
     window.travelingShopModalToggleTipo = function () {
         var tipoEl = document.getElementById('traveling-shop-modal-tipo');
         var catalogoWrap = document.getElementById('traveling-shop-modal-catalogo-wrap');
+        var inventarioLabel = document.getElementById('traveling-shop-modal-inventario-label');
         var isAnalisis = tipoEl && tipoEl.value === TIPO_ANALISIS_OBJETOS;
-        if (catalogoWrap) catalogoWrap.style.display = isAnalisis ? 'none' : 'block';
+        var isContratos = tipoEl && tipoEl.value === TIPO_CONTRATOS;
+        var isCasino = tipoEl && tipoEl.value === TIPO_CASINO;
+        if (catalogoWrap) catalogoWrap.style.display = (isAnalisis || isCasino) ? 'none' : 'block';
+        if (inventarioLabel) inventarioLabel.textContent = isContratos ? 'Contratos (arma, precio, misión, evidencia)' : 'Ítems que vende (mapas, etc.)';
     };
 
     function getVerReglasFilterAndSearch() {
@@ -671,33 +691,76 @@
     var _travelingShopModalItems = [];
 
     function renderTravelingShopModalInventario(items) {
-        _travelingShopModalItems = (items || []).map(function (it) {
-            return {
-                name: it.name || '',
-                price: it.price != null ? it.price : 0,
-                desc: it.desc || it.description || '',
-                visible: it.visible !== false
-            };
-        });
+        var tipoEl = document.getElementById('traveling-shop-modal-tipo');
+        var isContratos = tipoEl && tipoEl.value === TIPO_CONTRATOS;
+        if (isContratos) {
+            _travelingShopModalItems = (items || []).map(function (it) {
+                return {
+                    name: it.name || '',
+                    price: it.price != null ? it.price : 0,
+                    desc: it.desc || it.description || '',
+                    visible: it.visible !== false,
+                    contractName: it.contractName || '',
+                    queDebenHacer: it.queDebenHacer || '',
+                    evidenciaRequerida: it.evidenciaRequerida || '',
+                    missionId: it.missionId || ''
+                };
+            });
+        } else {
+            _travelingShopModalItems = (items || []).map(function (it) {
+                return {
+                    name: it.name || '',
+                    price: it.price != null ? it.price : 0,
+                    desc: it.desc || it.description || '',
+                    visible: it.visible !== false
+                };
+            });
+        }
         var listEl = document.getElementById('traveling-shop-modal-inventario-list');
         if (!listEl) return;
         if (!_travelingShopModalItems.length) {
-            listEl.innerHTML = '<p style="color:#8b7355; font-size:0.9em;">Sin ítems. Añade con el botón de abajo.</p>';
+            listEl.innerHTML = '<p style="color:#8b7355; font-size:0.9em;">Sin ítems. Añade con el botón de la tarjeta de la tienda.</p>';
             return;
         }
-        listEl.innerHTML = _travelingShopModalItems.map(function (item, i) {
-            var nameEsc = (item.name || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            var descEsc = (item.desc || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            var visibleChecked = item.visible ? ' checked' : '';
-            return '<div class="form-group" style="margin-bottom:16px; padding:12px; background:rgba(0,0,0,0.2); border-radius:8px; border:1px solid #4a3c31;">' +
-                '<div style="display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap;">' +
-                '<input type="text" class="searchbar" placeholder="Nombre del mapa" data-ts-item-name="' + i + '" value="' + nameEsc + '" style="flex:1; min-width:120px;">' +
-                '<input type="number" class="searchbar" placeholder="GP" data-ts-item-price="' + i + '" value="' + (item.price || 0) + '" min="0" style="width:80px;">' +
-                '<button type="button" class="btn btn-small btn-danger" onclick="travelingShopModalRemoveItem(' + i + ')">Quitar</button></div>' +
-                '<label style="color:#8b7355; font-size:0.85em; display:block; margin-bottom:4px;">Descripción del mapa (el jugador la verá en la tienda)</label>' +
-                '<textarea class="searchbar" placeholder="Ej: Señala la cueva del dragón dormido..." data-ts-item-desc="' + i + '" rows="2" style="width:100%; resize:vertical; min-height:50px;">' + descEsc + '</textarea>' +
-                '<label style="display:flex; align-items:center; gap:8px; margin-top:8px; color:#a89878; font-size:0.9em;"><input type="checkbox" data-ts-item-visible="' + i + '"' + visibleChecked + '> Visible para jugadores (si no está marcado, el ítem no aparece en la app del jugador)</label></div>';
-        }).join('');
+        var missions = window._travelingShopMissions || [];
+        if (isContratos) {
+            listEl.innerHTML = _travelingShopModalItems.map(function (item, i) {
+                var esc = function (s) { return String(s || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
+                var missionOpts = missions.map(function (m) {
+                    return '<option value="' + (m.id || '') + '"' + (item.missionId === m.id ? ' selected' : '') + '>' + esc(m.title) + '</option>';
+                }).join('');
+                return '<div class="form-group" style="margin-bottom:16px; padding:12px; background:rgba(0,0,0,0.2); border-radius:8px; border:1px solid #4a3c31;">' +
+                    '<div style="display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap;">' +
+                    '<input type="text" class="searchbar" placeholder="Nombre del arma" data-ts-item-name="' + i + '" value="' + esc(item.name) + '" style="flex:1; min-width:120px;">' +
+                    '<input type="number" class="searchbar" placeholder="GP" data-ts-item-price="' + i + '" value="' + (item.price || 0) + '" min="0" style="width:80px;">' +
+                    '<button type="button" class="btn btn-small btn-danger" onclick="travelingShopModalRemoveItem(' + i + ')">Quitar</button></div>' +
+                    '<label style="color:#8b7355; font-size:0.85em;">Descripción del arma</label>' +
+                    '<textarea class="searchbar" data-ts-item-desc="' + i + '" rows="1" style="width:100%; resize:vertical; min-height:40px;">' + esc(item.desc) + '</textarea>' +
+                    '<label style="color:#8b7355; font-size:0.85em; display:block; margin-top:6px;">Nombre del contrato</label>' +
+                    '<input type="text" class="searchbar" data-ts-item-contract-name="' + i + '" value="' + esc(item.contractName) + '" style="width:100%;">' +
+                    '<label style="color:#8b7355; font-size:0.85em;">Qué deben hacer</label>' +
+                    '<textarea class="searchbar" data-ts-item-que-deben-hacer="' + i + '" rows="1" style="width:100%; resize:vertical;">' + esc(item.queDebenHacer) + '</textarea>' +
+                    '<label style="color:#8b7355; font-size:0.85em;">Evidencia a traer</label>' +
+                    '<input type="text" class="searchbar" data-ts-item-evidencia="' + i + '" value="' + esc(item.evidenciaRequerida) + '" style="width:100%;">' +
+                    '<label style="color:#8b7355; font-size:0.85em;">Misión al comprar</label>' +
+                    '<select class="searchbar" data-ts-item-mission="' + i + '" style="width:100%;"><option value="">— Ninguna —</option>' + missionOpts + '</select>' +
+                    '<label style="display:flex; align-items:center; gap:8px; margin-top:8px; color:#a89878; font-size:0.9em;"><input type="checkbox" data-ts-item-visible="' + i + '"' + (item.visible ? ' checked' : '') + '> Visible para jugadores</label></div>';
+            }).join('');
+        } else {
+            listEl.innerHTML = _travelingShopModalItems.map(function (item, i) {
+                var nameEsc = (item.name || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                var descEsc = (item.desc || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                var visibleChecked = item.visible ? ' checked' : '';
+                return '<div class="form-group" style="margin-bottom:16px; padding:12px; background:rgba(0,0,0,0.2); border-radius:8px; border:1px solid #4a3c31;">' +
+                    '<div style="display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap;">' +
+                    '<input type="text" class="searchbar" placeholder="Nombre del mapa" data-ts-item-name="' + i + '" value="' + nameEsc + '" style="flex:1; min-width:120px;">' +
+                    '<input type="number" class="searchbar" placeholder="GP" data-ts-item-price="' + i + '" value="' + (item.price || 0) + '" min="0" style="width:80px;">' +
+                    '<button type="button" class="btn btn-small btn-danger" onclick="travelingShopModalRemoveItem(' + i + ')">Quitar</button></div>' +
+                    '<label style="color:#8b7355; font-size:0.85em; display:block; margin-bottom:4px;">Descripción del mapa (el jugador la verá en la tienda)</label>' +
+                    '<textarea class="searchbar" placeholder="Ej: Señala la cueva del dragón dormido..." data-ts-item-desc="' + i + '" rows="2" style="width:100%; resize:vertical; min-height:50px;">' + descEsc + '</textarea>' +
+                    '<label style="display:flex; align-items:center; gap:8px; margin-top:8px; color:#a89878; font-size:0.9em;"><input type="checkbox" data-ts-item-visible="' + i + '"' + visibleChecked + '> Visible para jugadores (si no está marcado, el ítem no aparece en la app del jugador)</label></div>';
+            }).join('');
+        }
     }
 
     /** Abre el modal para añadir un ítem a una tienda (fuera del modal Editar). Solo para tiendas tipo catálogo. */
@@ -761,24 +824,119 @@
             });
     };
 
+    /** Abre el modal para añadir un contrato (tienda tipo Contratos). */
+    window.openTravelingShopAddContractModal = function (shopId) {
+        var shop = (window.travelingShopsData || []).find(function (s) { return s.id === shopId; });
+        if (!shop) return;
+        var titleEl = document.getElementById('traveling-shop-add-contract-title');
+        var shopIdEl = document.getElementById('traveling-shop-add-contract-shop-id');
+        var nameEl = document.getElementById('traveling-shop-add-contract-name');
+        var priceEl = document.getElementById('traveling-shop-add-contract-price');
+        var descEl = document.getElementById('traveling-shop-add-contract-desc');
+        var contractNameEl = document.getElementById('traveling-shop-add-contract-contract-name');
+        var queDebenEl = document.getElementById('traveling-shop-add-contract-que-deben-hacer');
+        var evidenciaEl = document.getElementById('traveling-shop-add-contract-evidencia');
+        var missionSel = document.getElementById('traveling-shop-add-contract-mission');
+        var visibleEl = document.getElementById('traveling-shop-add-contract-visible');
+        if (!titleEl || !shopIdEl || !nameEl || !priceEl) return;
+        shopIdEl.value = shopId;
+        titleEl.textContent = '➕ Añadir contrato a ' + (shop.nombre || 'Contratos');
+        nameEl.value = '';
+        priceEl.value = '0';
+        if (descEl) descEl.value = '';
+        if (contractNameEl) contractNameEl.value = '';
+        if (queDebenEl) queDebenEl.value = '';
+        if (evidenciaEl) evidenciaEl.value = '';
+        if (visibleEl) visibleEl.checked = true;
+        if (missionSel) {
+            missionSel.innerHTML = '<option value="">— Ninguna —</option>';
+            db.collection('missions').where('status', 'in', ['draft', 'visible']).limit(200).get().then(function (snap) {
+                snap.docs.forEach(function (d) {
+                    var data = d.data();
+                    missionSel.appendChild(new Option(data.title || 'Sin título', d.id));
+                });
+            }).catch(function () {});
+        }
+        if (typeof openModal === 'function') openModal('traveling-shop-add-contract-modal');
+    };
+
+    /** Guarda el nuevo contrato en la tienda (tipo Contratos). */
+    window.saveTravelingShopAddContract = function () {
+        var shopIdEl = document.getElementById('traveling-shop-add-contract-shop-id');
+        var nameEl = document.getElementById('traveling-shop-add-contract-name');
+        var priceEl = document.getElementById('traveling-shop-add-contract-price');
+        var descEl = document.getElementById('traveling-shop-add-contract-desc');
+        var contractNameEl = document.getElementById('traveling-shop-add-contract-contract-name');
+        var queDebenEl = document.getElementById('traveling-shop-add-contract-que-deben-hacer');
+        var evidenciaEl = document.getElementById('traveling-shop-add-contract-evidencia');
+        var missionSel = document.getElementById('traveling-shop-add-contract-mission');
+        var visibleEl = document.getElementById('traveling-shop-add-contract-visible');
+        var shopId = shopIdEl && shopIdEl.value ? shopIdEl.value.trim() : '';
+        if (!shopId) {
+            if (typeof showToast === 'function') showToast('Error: tienda no indicada', true);
+            return;
+        }
+        var shop = (window.travelingShopsData || []).find(function (s) { return s.id === shopId; });
+        if (!shop) {
+            if (typeof showToast === 'function') showToast('Tienda no encontrada. Cierra el modal y vuelve a abrir la tienda.', true);
+            return;
+        }
+        var name = nameEl && nameEl.value ? nameEl.value.trim() : '';
+        if (!name) {
+            if (typeof showToast === 'function') showToast('Escribe el nombre del arma', true);
+            return;
+        }
+        var price = priceEl ? (parseInt(priceEl.value, 10) || 0) : 0;
+        var desc = descEl && descEl.value ? descEl.value.trim() : '';
+        var contractName = contractNameEl && contractNameEl.value ? contractNameEl.value.trim() : '';
+        var queDebenHacer = queDebenEl && queDebenEl.value ? queDebenEl.value.trim() : '';
+        var evidenciaRequerida = evidenciaEl && evidenciaEl.value ? evidenciaEl.value.trim() : '';
+        var missionId = missionSel && missionSel.value ? missionSel.value.trim() : '';
+        var visible = visibleEl ? visibleEl.checked : true;
+        var newItem = { name: name, price: price, visible: visible };
+        if (desc) newItem.desc = desc;
+        if (contractName) newItem.contractName = contractName;
+        if (queDebenHacer) newItem.queDebenHacer = queDebenHacer;
+        if (evidenciaRequerida) newItem.evidenciaRequerida = evidenciaRequerida;
+        if (missionId) newItem.missionId = missionId;
+        var inventario = Array.isArray(shop.inventario) ? shop.inventario.slice() : [];
+        inventario.push(newItem);
+        db.collection(COLLECTION).doc(shopId).update({ inventario: sanitizeInventarioForFirestore(inventario) })
+            .then(function () {
+                if (typeof closeModal === 'function') closeModal('traveling-shop-add-contract-modal');
+                if (typeof showToast === 'function') showToast('Contrato añadido');
+                fetchTravelingShopsDM();
+            })
+            .catch(function (err) {
+                console.error(err);
+                if (typeof showToast === 'function') showToast('Error al guardar: ' + (err.message || err), true);
+            });
+    };
+
     window.travelingShopModalRemoveItem = function (index) {
         _travelingShopModalItems.splice(index, 1);
         renderTravelingShopModalInventario(_travelingShopModalItems);
     };
 
-    /** Devuelve inventario sin valores undefined (Firestore no los acepta). */
+    /** Devuelve inventario sin valores undefined (Firestore no los acepta). Incluye campos de contrato si existen. */
     function sanitizeInventarioForFirestore(arr) {
         if (!Array.isArray(arr)) return [];
         return arr.map(function (it) {
             var o = { name: it.name || '', price: it.price != null ? it.price : 0, visible: it.visible !== false };
             if (it.desc) o.desc = it.desc;
+            if (it.contractName) o.contractName = it.contractName;
+            if (it.queDebenHacer) o.queDebenHacer = it.queDebenHacer;
+            if (it.evidenciaRequerida) o.evidenciaRequerida = it.evidenciaRequerida;
+            if (it.missionId) o.missionId = it.missionId;
             return o;
         });
     }
 
     function collectTravelingShopFormInventario() {
         var listEl = document.getElementById('traveling-shop-modal-inventario-list');
+        var tipoEl = document.getElementById('traveling-shop-modal-tipo');
         if (!listEl) return [];
+        var isContratos = tipoEl && tipoEl.value === TIPO_CONTRATOS;
         var nameInputs = listEl.querySelectorAll('[data-ts-item-name]');
         var out = [];
         for (var i = 0; i < nameInputs.length; i++) {
@@ -793,6 +951,16 @@
             if (name) {
                 var item = { name: name, price: price, visible: visible };
                 if (desc) item.desc = desc;
+                if (isContratos) {
+                    var contractNameIn = listEl.querySelector('[data-ts-item-contract-name="' + i + '"]');
+                    var queDebenIn = listEl.querySelector('[data-ts-item-que-deben-hacer="' + i + '"]');
+                    var evidenciaIn = listEl.querySelector('[data-ts-item-evidencia="' + i + '"]');
+                    var missionIn = listEl.querySelector('[data-ts-item-mission="' + i + '"]');
+                    if (contractNameIn && contractNameIn.value.trim()) item.contractName = contractNameIn.value.trim();
+                    if (queDebenIn && queDebenIn.value.trim()) item.queDebenHacer = queDebenIn.value.trim();
+                    if (evidenciaIn && evidenciaIn.value.trim()) item.evidenciaRequerida = evidenciaIn.value.trim();
+                    if (missionIn && missionIn.value.trim()) item.missionId = missionIn.value.trim();
+                }
                 out.push(item);
             }
         }
@@ -823,7 +991,7 @@
             imagenUrl: imagenUrl,
             activa: activa,
             locacionMensaje: locacionMensaje,
-            inventario: tipo === TIPO_ANALISIS_OBJETOS ? [] : sanitizeInventarioForFirestore(collectTravelingShopFormInventario())
+            inventario: (tipo === TIPO_ANALISIS_OBJETOS || tipo === TIPO_CASINO) ? [] : sanitizeInventarioForFirestore(collectTravelingShopFormInventario())
         };
         var p = id
             ? db.collection(COLLECTION).doc(id).update(payload)
@@ -891,9 +1059,12 @@
         }
         if (shop.tipo === TIPO_ANALISIS_OBJETOS) {
             openTravelingShopAnalisis(shopId);
+        } else if (shop.tipo === TIPO_CASINO) {
+            if (typeof openTravelingShopCasino === 'function') openTravelingShopCasino(shopId);
         } else {
             openTravelingShopCatalog(shopId);
         }
+        /* catalogo y contratos usan el mismo flujo: listado, carrito y checkout */
     };
 
     /** Carrito tienda de mapas: [{ itemIndex, item: { name, price, effect, rarity, ... }, qty }] */
@@ -980,13 +1151,14 @@
         if (!titleEl || !listEl) return;
         if (bodyEl) { bodyEl.style.display = 'block'; bodyEl.classList.remove('view-cart'); }
         if (recEl) { recEl.style.display = 'none'; recEl.innerHTML = ''; }
-        titleEl.textContent = '🗺️ ' + (shop.nombre || 'Tienda de mapas');
+        titleEl.textContent = (shop.tipo === TIPO_CONTRATOS ? '📜 ' : '🗺️ ') + (shop.nombre || (shop.tipo === TIPO_CONTRATOS ? 'Contratos' : 'Tienda de mapas'));
         var fullInventario = shop.inventario || [];
         var visibleWithIndex = [];
         fullInventario.forEach(function (item, idx) {
             if (item.visible !== false) visibleWithIndex.push({ item: item, realIndex: idx });
         });
         var rarityColors = { común: '#2ecc71', inusual: '#3498db', rara: '#9b59b6', legendaria: '#e74c3c' };
+        var isContratos = shop.tipo === TIPO_CONTRATOS;
         if (!visibleWithIndex.length) {
             listEl.innerHTML = '<p style="color:#8b7355; text-align:center; padding:30px;">No hay ítems visibles en esta tienda.</p>';
         } else {
@@ -998,6 +1170,23 @@
                 var r = (item.rarity || 'común').toLowerCase();
                 if (r === 'infrecuente') r = 'inusual';
                 var price = item.price != null ? item.price : 0;
+                var esc = function (s) { return String(s || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
+                if (isContratos) {
+                    var contractName = item.contractName || item.name || 'Contrato';
+                    var queDeben = item.queDebenHacer || '';
+                    var evidencia = item.evidenciaRequerida || '';
+                    return '<div class="player-posada-cuarto" style="background:rgba(0,0,0,0.25); border:1px solid #4a3c31; border-radius:10px; padding:16px; margin-bottom:12px;">' +
+                        '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">' +
+                        '<div style="flex:1; min-width:180px;">' +
+                        '<h4 style="color:#d4af37; font-family:\'Cinzel\',serif; margin-bottom:4px;">' + esc(contractName) + '</h4>' +
+                        '<p style="color:#8b7355; font-size:0.85em; margin-bottom:4px;">Arma: ' + esc(item.name) + '</p>' +
+                        '<p style="color:#a89878; font-size:0.9em; line-height:1.4;">' + esc(desc) + '</p>' +
+                        (queDeben ? '<p style="color:#8b7355; font-size:0.85em; margin-top:6px;"><strong>Qué hacer:</strong> ' + esc(queDeben) + '</p>' : '') +
+                        (evidencia ? '<p style="color:#8fbc8f; font-size:0.85em;"><strong>Evidencia a traer:</strong> ' + esc(evidencia) + '</p>' : '') +
+                        '</div>' +
+                        '<div style="flex-shrink:0; text-align:right;"><div class="gold-value" style="margin-bottom:8px;">' + (price > 0 ? price + ' GP' : '—') + '</div>' +
+                        '<button type="button" class="btn btn-small" onclick="typeof addToTravelingShopCatalogCart===\'function\'&&addToTravelingShopCatalogCart(\'' + shopIdEsc + '\', ' + realIdx + ')">+ Añadir</button></div></div></div>';
+                }
                 return '<div class="player-posada-cuarto" style="background:rgba(0,0,0,0.25); border:1px solid #4a3c31; border-radius:10px; padding:16px; margin-bottom:12px;">' +
                     '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">' +
                     '<div style="flex:1; min-width:180px;">' +
@@ -1041,18 +1230,21 @@
         var items = opts.items || [];
         var totalValue = opts.totalValue || '0 GP';
         var modalId = (opts.modalId || 'player-shop-catalog-modal').replace(/"/g, '&quot;');
+        var isContrato = opts.isContrato === true;
+        var receiptTitle = isContrato ? 'CONTRATO' : 'MAPA DEL TESORO';
+        var receiptLogo = isContrato ? '📜' : '🗺️';
         var esc = function (s) { return String(s || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
         var now = new Date();
         var dateStr = now.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
-        var msg = TREASURE_MAP_MESSAGES[Math.floor(Math.random() * TREASURE_MAP_MESSAGES.length)];
+        var msg = isContrato ? 'Cuando presentes la evidencia requerida, recibirás el arma.' : TREASURE_MAP_MESSAGES[Math.floor(Math.random() * TREASURE_MAP_MESSAGES.length)];
         var rows = items.map(function (i) {
             return '<div class="player-treasure-map-row"><span class="player-treasure-map-item-name">' + esc(i.name) + '</span><span class="player-treasure-map-item-price">' + esc(i.line) + '</span></div>';
         }).join('');
         var closeOnclick = 'closeModal(&quot;' + modalId + '&quot;)';
         return '<div class="player-treasure-map-receipt">' +
             '<div class="player-treasure-map-header">' +
-            '<div class="player-treasure-map-logo">🗺️</div>' +
-            '<div class="player-treasure-map-title">MAPA DEL TESORO</div>' +
+            '<div class="player-treasure-map-logo">' + receiptLogo + '</div>' +
+            '<div class="player-treasure-map-title">' + esc(receiptTitle) + '</div>' +
             '<div class="player-treasure-map-subtitle">' + esc(shopName) + '</div>' +
             '</div>' +
             '<div class="player-treasure-map-body">' + rows + '</div>' +
@@ -1094,23 +1286,48 @@
             }
             var newOro = oro - total;
             var inventario = Array.isArray(data.inventario) ? data.inventario.slice() : [];
-            travelingShopCatalogCart.forEach(function (entry) {
-                var qty = entry.qty || 1;
-                var it = entry.item;
-                for (var i = 0; i < qty; i++) {
-                    var copy = { name: it.name || 'Item', price: it.price, effect: it.effect || '', rarity: it.rarity || 'común' };
-                    if (it.desc) copy.desc = it.desc;
-                    inventario.push(copy);
-                }
-            });
+            var isContratos = shop.tipo === TIPO_CONTRATOS;
+            if (!isContratos) {
+                travelingShopCatalogCart.forEach(function (entry) {
+                    var qty = entry.qty || 1;
+                    var it = entry.item;
+                    for (var i = 0; i < qty; i++) {
+                        var copy = { name: it.name || 'Item', price: it.price, effect: it.effect || '', rarity: it.rarity || 'común' };
+                        if (it.desc) copy.desc = it.desc;
+                        inventario.push(copy);
+                    }
+                });
+            }
             return docRef.update({ oro: newOro, inventario: inventario }).then(function () { return { newOro: newOro, total: total }; });
         }).then(function (result) {
             if (!result) return;
+            var missionPromises = [];
+            if (shop.tipo === TIPO_CONTRATOS && shop.inventario) {
+                travelingShopCatalogCart.forEach(function (entry) {
+                    var orig = shop.inventario[entry.itemIndex];
+                    if (orig && orig.missionId && user.id) {
+                        var mid = orig.missionId;
+                        missionPromises.push(
+                            db.collection('missions').doc(mid).get().then(function (snap) {
+                                if (!snap.exists) return;
+                                var d = snap.data();
+                                var assigned = Array.isArray(d.assignedPlayerIds) ? d.assignedPlayerIds.slice() : [];
+                                if (assigned.indexOf(user.id) === -1) assigned.push(user.id);
+                                var updates = { assignedPlayerIds: assigned, visibleTo: 'player' };
+                                if ((d.status || '').toString().toLowerCase() === 'draft') updates.status = 'visible';
+                                if (typeof firebase !== 'undefined' && firebase.firestore && firebase.firestore.FieldValue) updates.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+                                return db.collection('missions').doc(mid).update(updates);
+                            }).catch(function (e) { console.error('Error activando misión', e); })
+                        );
+                    }
+                });
+            }
+            var next = function () {
             var itemsBought = travelingShopCatalogCart.map(function (entry) {
                 var it = entry.item;
                 return { item: { name: it.name, effect: it.effect || it.desc || '', price: it.price }, qty: entry.qty || 1 };
             });
-            if (itemsBought.length && typeof runAutomationRules === 'function') {
+            if (itemsBought.length && shop.tipo !== TIPO_CONTRATOS && typeof runAutomationRules === 'function') {
                 runAutomationRules('traveling_' + shopId, itemsBought, user.id, user.nombre || 'Jugador');
             }
             var receiptItems = travelingShopCatalogCart.map(function (entry) {
@@ -1127,7 +1344,8 @@
                     shopName: shopName,
                     items: receiptItems,
                     totalValue: result.total.toLocaleString() + ' GP',
-                    modalId: 'player-shop-catalog-modal'
+                    modalId: 'player-shop-catalog-modal',
+                    isContrato: shop.tipo === TIPO_CONTRATOS
                 });
                 recEl.style.display = 'block';
             }
@@ -1139,7 +1357,10 @@
             }
             var oroEl = document.getElementById('player-shop-catalog-oro');
             if (oroEl) oroEl.innerHTML = '<strong>' + result.newOro.toLocaleString() + '</strong> GP';
-            if (typeof showToast === 'function') showToast('Compra realizada. ' + result.total.toLocaleString() + ' GP descontados.');
+            if (typeof showToast === 'function') showToast(shop.tipo === TIPO_CONTRATOS ? 'Contrato adquirido. ' + result.total.toLocaleString() + ' GP descontados. Revisa tus misiones.' : 'Compra realizada. ' + result.total.toLocaleString() + ' GP descontados.');
+            };
+            if (missionPromises.length) Promise.all(missionPromises).then(next).catch(function () { next(); });
+            else next();
         }).catch(function (err) {
             if (err && err.message !== 'no doc' && err.message !== 'no oro') console.error(err);
         });

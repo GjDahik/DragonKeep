@@ -1,5 +1,5 @@
-/* Service Worker para DragonKeep - GitHub Pages subpath. Al desplegar: subir versión (ej. v4→v5) igual que ?v= en index.html */
-const CACHE_NAME = 'dragonkeep-v4';
+/* Service Worker - La versión (CACHE_NAME) se actualiza con: node update-version.js 6 */
+const CACHE_NAME = 'dragonkeep-v7';
 
 /** Base path del SW (ej. /dm-dashboard-modular/) para que funcione bajo subpath */
 function getBase() {

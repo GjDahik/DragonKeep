@@ -4547,3 +4547,69 @@ body {
     0% { transform: translateX(-100%); }
     100% { transform: translateX(350%); }
 }
+
+/* Casino (tienda ambulante): tarjetas de juego y historial */
+.player-casino-game-card {
+    background: linear-gradient(135deg, rgba(92,74,58,0.4), rgba(15,15,35,0.6));
+    border: 2px solid #5c4a3a;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.player-casino-game-card:hover {
+    border-color: #d4a574;
+    box-shadow: 0 0 12px rgba(212,165,116,0.2);
+}
+.player-casino-game-name { font-weight: 600; font-size: 1.05em; color: #f0e6d3; margin-bottom: 4px; }
+.player-casino-game-desc { font-size: 0.85em; color: #a89080; }
+.player-casino-option-card {
+    display: block;
+    padding: 12px 16px;
+    margin: 8px 0;
+    background: linear-gradient(135deg, rgba(92,74,58,0.35), rgba(15,15,35,0.5));
+    border: 2px solid #5c4a3a;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    color: #e8dcc8;
+    font-size: 0.95em;
+}
+.player-casino-option-card:hover {
+    border-color: #d4a574;
+    box-shadow: 0 0 10px rgba(212,165,116,0.2);
+}
+.player-casino-option-card.selected {
+    border-color: #d4af37;
+    box-shadow: 0 0 14px rgba(212,175,55,0.35);
+    background: linear-gradient(135deg, rgba(92,74,58,0.5), rgba(40,35,25,0.6));
+}
+.player-casino-option-card:focus {
+    outline: none;
+    border-color: #d4a574;
+}
+.player-casino-history-row {
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(139,115,85,0.4);
+    background: rgba(0,0,0,0.2);
+    font-size: 0.9em;
+}
+.player-casino-history-row.player-casino-pending { border-left: 4px solid #f4d03f; color: #f4d03f; }
+.player-casino-history-row.player-casino-won { border-left: 4px solid #4a9c5d; color: #8bc34a; }
+.player-casino-history-row.player-casino-lost { border-left: 4px solid #9c4a4a; color: #c66; }
+.dm-casino-bet-card {
+    background: rgba(92,74,58,0.3);
+    border: 2px solid #5c4a3a;
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 12px;
+}
+.dm-casino-bet-card .dm-casino-bet-player { font-weight: 600; color: #f0e6d3; margin-bottom: 4px; }
+.dm-casino-bet-card .dm-casino-bet-detail { font-size: 0.9em; color: #a89080; margin-bottom: 8px; }
+.dm-casino-bet-card .dm-casino-bet-actions { display: flex; gap: 10px; margin-top: 10px; }
+.dm-casino-bet-card .dm-casino-bet-actions .btn { flex: 1; }
+.dm-casino-bet-card .dm-casino-bet-actions .btn.win { background: #2e7d32; color: #fff; }
+.dm-casino-bet-card .dm-casino-bet-actions .btn.lose { background: #c62828; color: #fff; }

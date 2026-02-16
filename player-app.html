@@ -15,8 +15,8 @@
       (function(){ if (location.protocol === 'http:' || location.protocol === 'https:') { var l = document.createElement('link'); l.rel = 'manifest'; l.href = './manifest.webmanifest'; document.head.appendChild(l); } })();
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-    <!-- Al desplegar: cambiar v= en CSS/JS y CACHE_NAME en sw.js para que los usuarios reciban la nueva versión sin limpiar caché -->
-    <link rel="stylesheet" href="css/styles.css?v=3">
+    <!-- Al desplegar: ejecutar "node update-version.js 6" (sube el número) para que los usuarios vean los cambios sin hard reload -->
+    <link rel="stylesheet" href="css/styles.css?v=7">
 </head>
 <body>
     <!-- Vista Personaje (mismo login, otro rol) -->
@@ -854,6 +854,43 @@
             </div>
             <div class="modal-footer" id="player-shop-catalog-footer">
                 <button class="btn btn-secondary" onclick="closeModal('player-shop-catalog-modal')">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Casino (apuestas; el DM tira los dados en la mesa) -->
+    <div class="modal-overlay" id="player-casino-modal">
+        <div class="modal" style="max-width: 520px;">
+            <div class="modal-header">
+                <h3 id="player-casino-title">🎲 Casino</h3>
+                <button class="modal-close" onclick="typeof closePlayerCasinoModal==='function'&&closePlayerCasinoModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="color:#8b7355; font-size:0.9em; margin-bottom:16px;">Elige un juego, tu opción y el monto a apostar. La Casa tira los dados en la mesa; el DM marcará si ganaste o perdiste.</p>
+                <div id="player-casino-games" class="player-casino-games"></div>
+                <div id="player-casino-form-wrap" style="display:none; margin-top:16px; padding:16px; background:rgba(0,0,0,0.2); border-radius:8px; border:1px solid #4a3c31;">
+                    <div style="display:flex; align-items:center; justify-content: space-between; margin-bottom:12px;">
+                        <button type="button" class="btn btn-secondary" style="padding:6px 12px; font-size:0.9em;" onclick="typeof backToCasinoGames==='function'&&backToCasinoGames()">← Atrás</button>
+                        <h4 id="player-casino-form-title" style="color:#d4af37; font-family:'Cinzel',serif; margin:0; flex:1; text-align:center;"></h4>
+                        <span style="width:80px;"></span>
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#a89878;">Opción</label>
+                        <div id="player-casino-options" style="display:flex; flex-direction:column; gap:8px;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#a89878;">Monto (GP)</label>
+                        <input type="number" id="player-casino-amount" class="searchbar" min="1" placeholder="Ej: 10" aria-label="Monto a apostar">
+                    </div>
+                    <button type="button" class="btn" id="player-casino-confirm-btn">Confirmar apuesta</button>
+                </div>
+                <div id="player-casino-waiting-wrap" style="display:none; text-align:center; padding:24px 16px;">
+                    <p id="player-casino-waiting-text" style="color:#d4af37; font-size:1.1em; font-family:'Cinzel',serif; margin:0; line-height:1.5;">No se aceptan más apuestas. Por favor mira la mesa.</p>
+                </div>
+                <div id="player-casino-winner-wrap" style="display:none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="typeof closePlayerCasinoModal==='function'&&closePlayerCasinoModal()">Cerrar</button>
             </div>
         </div>
     </div>
@@ -2204,6 +2241,8 @@
                     <label>Tipo de tienda</label>
                     <select id="traveling-shop-modal-tipo" class="searchbar" onchange="if(typeof travelingShopModalToggleTipo==='function')travelingShopModalToggleTipo()">
                         <option value="catalogo">Tienda de mapas (vende ítems)</option>
+                        <option value="contratos">Encargos · Contratos · Entregas Diferidas</option>
+                        <option value="casino">Casino (apuestas, el DM tira los dados en la mesa)</option>
                         <option value="analisis_objetos">Análisis de objetos (analiza el inventario del personaje, no vende)</option>
                     </select>
                 </div>
@@ -2222,7 +2261,7 @@
                     </select>
                 </div>
                 <div class="form-group" id="traveling-shop-modal-catalogo-wrap">
-                    <label>Ítems que vende (mapas, etc.)</label>
+                    <label id="traveling-shop-modal-inventario-label">Ítems que vende (mapas, etc.)</label>
                     <div id="traveling-shop-modal-inventario-list"></div>
                 </div>
             </div>
@@ -2261,6 +2300,57 @@
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeModal('traveling-shop-add-item-modal')">Cancelar</button>
                 <button type="button" class="btn" onclick="if(typeof saveTravelingShopAddItem==='function'){ saveTravelingShopAddItem(); } else { alert('Recarga la página e inténtalo de nuevo.'); }">Guardar ítem</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Añadir contrato (tienda Contratos) -->
+    <div class="modal-overlay" id="traveling-shop-add-contract-modal">
+        <div class="modal" style="max-width: 560px;">
+            <div class="modal-header">
+                <h3 id="traveling-shop-add-contract-title">➕ Añadir contrato</h3>
+                <button class="modal-close" onclick="closeModal('traveling-shop-add-contract-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="traveling-shop-add-contract-shop-id" value="">
+                <div class="form-group">
+                    <label>Nombre del arma</label>
+                    <input type="text" id="traveling-shop-add-contract-name" class="searchbar" placeholder="Ej: Espada de la luz">
+                </div>
+                <div class="form-group">
+                    <label>Precio (GP)</label>
+                    <input type="number" id="traveling-shop-add-contract-price" class="searchbar" min="0" value="0" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Descripción del arma</label>
+                    <textarea id="traveling-shop-add-contract-desc" class="searchbar" rows="2" placeholder="Breve descripción del arma que recibirán..." style="width:100%; resize:vertical;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Nombre del contrato</label>
+                    <input type="text" id="traveling-shop-add-contract-contract-name" class="searchbar" placeholder="Ej: Contrato de la espada de la luz">
+                </div>
+                <div class="form-group">
+                    <label>Qué deben hacer</label>
+                    <textarea id="traveling-shop-add-contract-que-deben-hacer" class="searchbar" rows="2" placeholder="Descripción de la misión o tarea..." style="width:100%; resize:vertical;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Qué evidencia deben traer</label>
+                    <input type="text" id="traveling-shop-add-contract-evidencia" class="searchbar" placeholder="Ej: La gema del dragón, la firma del alcalde...">
+                </div>
+                <div class="form-group">
+                    <label>Misión a activar al comprar (opcional)</label>
+                    <select id="traveling-shop-add-contract-mission">
+                        <option value="">— Ninguna —</option>
+                    </select>
+                    <p style="margin:6px 0 0; font-size:0.85em; color:#8b7355;">Si eliges una misión, al comprar el contrato se hará visible para el jugador.</p>
+                </div>
+                <div class="form-group">
+                    <label><input type="checkbox" id="traveling-shop-add-contract-visible" checked> Visible para jugadores</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('traveling-shop-add-contract-modal')">Cancelar</button>
+                <button type="button" class="btn" onclick="if(typeof saveTravelingShopAddContract==='function') saveTravelingShopAddContract(); else alert('Recarga la página.');">Guardar contrato</button>
             </div>
         </div>
     </div>
@@ -2513,23 +2603,24 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js?v=3"></script>
+    <script src="js/firebase-config.js?v=7"></script>
     
     <!-- SheetJS para soporte Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <!-- App Scripts (misma ?v= que el CSS; al desplegar subir versión) -->
-    <script src="js/auth.js?v=3"></script>
-    <script src="js/firestore-subscriptions.js?v=3"></script>
-    <script src="js/app.js?v=3"></script>
-    <script src="js/player-map-touch.js?v=3"></script>
-    <script src="js/players.js?v=3"></script>
-    <script src="js/cities.js?v=3"></script>
-    <script src="js/traveling-shops.js?v=3"></script>
-    <script src="js/inventory.js?v=3"></script>
-    <script src="js/transactions.js?v=3"></script>
-    <script src="js/notifications.js?v=3"></script>
-    <script src="js/automation.js?v=3"></script>
-    <script src="js/missions.js?v=3"></script>
+    <script src="js/auth.js?v=7"></script>
+    <script src="js/firestore-subscriptions.js?v=7"></script>
+    <script src="js/app.js?v=7"></script>
+    <script src="js/player-map-touch.js?v=7"></script>
+    <script src="js/players.js?v=7"></script>
+    <script src="js/cities.js?v=7"></script>
+    <script src="js/traveling-shops.js?v=7"></script>
+    <script src="js/casino.js?v=7"></script>
+    <script src="js/inventory.js?v=7"></script>
+    <script src="js/transactions.js?v=7"></script>
+    <script src="js/notifications.js?v=7"></script>
+    <script src="js/automation.js?v=7"></script>
+    <script src="js/missions.js?v=7"></script>
 </body>
 </html>
