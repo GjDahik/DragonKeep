@@ -2310,6 +2310,33 @@ function toggleInvActionsMenu(event, btn) {
     if (!isOpen) dropdown.classList.add('is-open');
 }
 
+function openSpecialItemActionsModalFromBtn(btn) {
+    var playerId = btn.getAttribute('data-special-player-id');
+    var itemId = btn.getAttribute('data-special-item-id');
+    var itemName = (btn.getAttribute('data-special-item-name') || 'Item especial').replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+    var containerId = btn.getAttribute('data-special-container-id') || 'player-special-items-list';
+    var isDM = btn.getAttribute('data-special-is-dm') === '1';
+    openSpecialItemActionsModal(playerId, itemId, itemName, { containerId: containerId, isDM: isDM });
+}
+
+function openSpecialItemActionsModal(playerId, itemId, itemName, options) {
+    options = options || {};
+    closeAllInvActionsMenus();
+    _pendingInvActions = {
+        isSpecialItem: true,
+        playerId: playerId,
+        itemId: itemId,
+        itemName: itemName || 'Item especial',
+        containerId: options.containerId || 'player-special-items-list',
+        isDM: options.isDM === true
+    };
+    var titleEl = document.getElementById('player-inventory-actions-title');
+    var nameEl = document.getElementById('player-inventory-actions-item-name');
+    if (titleEl) titleEl.textContent = 'Acciones del ítem';
+    if (nameEl) nameEl.innerHTML = '<strong>' + String(itemName).replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') + '</strong>';
+    openModal('player-inventory-actions-modal');
+}
+
 function openPlayerInventoryActionsModal(event, btn) {
     if (event) event.stopPropagation();
     closeAllInvActionsMenus();
@@ -2375,6 +2402,11 @@ function invActionUseFromModal() {
     if (!_pendingInvActions) return;
     closeModal('player-inventory-actions-modal');
     var a = _pendingInvActions;
+    if (a.isSpecialItem && typeof useSpecialItem === 'function') {
+        useSpecialItem(a.playerId, a.itemId, { containerId: a.containerId, isDM: a.isDM });
+        _pendingInvActions = null;
+        return;
+    }
     if (a.indicesStr) {
         openUseItemConfirmStack(a.indicesStr);
     } else {
@@ -2387,6 +2419,11 @@ function invActionSellFromModal() {
     if (!_pendingInvActions) return;
     closeModal('player-inventory-actions-modal');
     var a = _pendingInvActions;
+    if (a.isSpecialItem) {
+        openSellSpecialItemConfirm(a);
+        _pendingInvActions = null;
+        return;
+    }
     if (a.count > 1 && a.indicesStr) {
         openSellConfirmStack(a.indicesStr);
     } else {
@@ -2399,6 +2436,11 @@ function invActionTransferFromModal() {
     if (!_pendingInvActions) return;
     closeModal('player-inventory-actions-modal');
     var a = _pendingInvActions;
+    if (a.isSpecialItem) {
+        openTransferSpecialItemModal(a);
+        _pendingInvActions = null;
+        return;
+    }
     openTransferItemModal(a.firstIndex, a.count, a.indicesStr);
     _pendingInvActions = null;
 }
@@ -2528,6 +2570,10 @@ var _pendingSellAction = null;
 
 function openSellConfirm(index) {
     if (!lastPlayerViewData || !lastPlayerViewData.inventario) return;
+    var qtyRow = document.getElementById('player-sell-qty-row');
+    var specialRow = document.getElementById('player-sell-special-item-row');
+    if (qtyRow) qtyRow.style.display = '';
+    if (specialRow) specialRow.style.display = 'none';
     var item = lastPlayerViewData.inventario[index];
     if (!item) return;
     var maxQty = getItemQuantity(item);
@@ -2552,6 +2598,10 @@ function openSellConfirm(index) {
 
 function openSellConfirmStack(indicesStr) {
     if (!lastPlayerViewData || !lastPlayerViewData.inventario) return;
+    var qtyRow = document.getElementById('player-sell-qty-row');
+    var specialRow = document.getElementById('player-sell-special-item-row');
+    if (qtyRow) qtyRow.style.display = '';
+    if (specialRow) specialRow.style.display = 'none';
     var indices = indicesStr.split(',').map(function(s) { return parseInt(s, 10); }).filter(function(n) { return !isNaN(n); });
     if (indices.length === 0) return;
     var inv = lastPlayerViewData.inventario;
@@ -2575,9 +2625,36 @@ function openSellConfirmStack(indicesStr) {
     openModal('player-sell-item-confirm-modal');
 }
 
+function openSellSpecialItemConfirm(a) {
+    _pendingSellAction = { isSpecialItem: true, playerId: a.playerId, itemId: a.itemId, itemName: a.itemName, containerId: a.containerId, isDM: a.isDM };
+    var msgEl = document.getElementById('player-sell-confirm-message');
+    var hintEl = document.getElementById('player-sell-confirm-hint');
+    var qtyRow = document.getElementById('player-sell-qty-row');
+    var specialRow = document.getElementById('player-sell-special-item-row');
+    var valorInput = document.getElementById('player-sell-special-valor');
+    if (msgEl) msgEl.textContent = '¿Vender este item especial? Indica su valor en GP (recibirás 75%).';
+    if (hintEl) hintEl.textContent = '75% del valor indicado se añade a tu oro.';
+    if (qtyRow) qtyRow.style.display = 'none';
+    if (specialRow) specialRow.style.display = 'block';
+    if (valorInput) { valorInput.value = '0'; valorInput.min = 0; }
+    openModal('player-sell-item-confirm-modal');
+}
+
 function doConfirmedSellItem() {
     if (!_pendingSellAction) { closeModal('player-sell-item-confirm-modal'); return; }
     var a = _pendingSellAction;
+    if (a.isSpecialItem && typeof sellSpecialItem === 'function') {
+        var valorInput = document.getElementById('player-sell-special-valor');
+        var valor = parseInt(valorInput && valorInput.value, 10) || 0;
+        sellSpecialItem(a.playerId, a.itemId, valor, { containerId: a.containerId, isDM: a.isDM });
+        _pendingSellAction = null;
+        closeModal('player-sell-item-confirm-modal');
+        var qtyRow = document.getElementById('player-sell-qty-row');
+        var specialRow = document.getElementById('player-sell-special-item-row');
+        if (qtyRow) qtyRow.style.display = '';
+        if (specialRow) specialRow.style.display = 'none';
+        return;
+    }
     var qtyInput = document.getElementById('player-sell-qty');
     var qty = (qtyInput && qtyInput.value !== '') ? Math.max(1, parseInt(qtyInput.value, 10) || 1) : 1;
     var maxVal = qtyInput ? (parseInt(qtyInput.getAttribute('max'), 10) || qty) : qty;
@@ -2807,6 +2884,29 @@ async function playerSellItemStack(indicesStr, qtyOrButton) {
 
 var _pendingTransfer = null;
 
+function openTransferSpecialItemModal(a) {
+    const user = getCurrentUser();
+    if (!user) return;
+    _pendingTransfer = { isSpecialItem: true, fromPlayerId: a.playerId, itemId: a.itemId, itemName: a.itemName, containerId: a.containerId, isDM: a.isDM };
+    const nameEl = document.getElementById('player-transfer-item-name');
+    const qtyRow = document.getElementById('player-transfer-qty-row');
+    const selectEl = document.getElementById('player-transfer-to-select');
+    if (nameEl) nameEl.textContent = 'Transferir item especial: ' + (a.itemName || 'Item');
+    if (qtyRow) qtyRow.style.display = 'none';
+    if (selectEl) {
+        selectEl.innerHTML = '<option value="">— Cargando —</option>';
+        db.collection('players').limit(200).get().then(snap => {
+            const others = (snap.docs || [])
+                .map(d => ({ id: d.id, nombre: (d.data().nombre || '').trim() || 'Sin nombre', visible: d.data().visible }))
+                .filter(p => p.id !== a.playerId && p.visible !== false)
+                .sort((x, y) => (x.nombre || '').localeCompare(y.nombre || '', 'es'));
+            selectEl.innerHTML = '<option value="">— Elige jugador —</option>' +
+                others.map(p => '<option value="' + p.id + '">' + (p.nombre || p.id).replace(/</g, '&lt;') + '</option>').join('');
+        }).catch(() => { selectEl.innerHTML = '<option value="">— Error al cargar —</option>'; });
+    }
+    if (typeof openModal === 'function') openModal('player-transfer-item-modal');
+}
+
 function openTransferItemModal(firstIndex, count, indicesStr) {
     const user = getCurrentUser();
     if (!user || !isPlayer()) return;
@@ -2815,8 +2915,10 @@ function openTransferItemModal(firstIndex, count, indicesStr) {
     if (!item) return;
     _pendingTransfer = { firstIndex, count, indicesStr };
     const nameEl = document.getElementById('player-transfer-item-name');
+    const qtyRow = document.getElementById('player-transfer-qty-row');
     const qtyEl = document.getElementById('player-transfer-qty');
     const selectEl = document.getElementById('player-transfer-to-select');
+    if (qtyRow) qtyRow.style.display = '';
     if (nameEl) nameEl.textContent = 'Transferir: ' + (item.name || 'Item') + (count > 1 ? ' (máx. ' + count + ')' : '');
     if (qtyEl) {
         qtyEl.min = 1;
@@ -2840,13 +2942,26 @@ function openTransferItemModal(firstIndex, count, indicesStr) {
 }
 
 async function confirmTransferItem() {
-    const user = getCurrentUser();
-    if (!user || !isPlayer() || !_pendingTransfer) return;
+    if (!_pendingTransfer) return;
     const toId = document.getElementById('player-transfer-to-select') && document.getElementById('player-transfer-to-select').value;
     if (!toId) {
         showToast('Elige un jugador para enviar el ítem', true);
         return;
     }
+    if (_pendingTransfer.isSpecialItem && typeof transferSpecialItem === 'function') {
+        if (toId === _pendingTransfer.fromPlayerId) {
+            showToast('Elige otro jugador (no puedes enviártelo a ti mismo)', true);
+            return;
+        }
+        transferSpecialItem(_pendingTransfer.fromPlayerId, _pendingTransfer.itemId, toId, { containerId: _pendingTransfer.containerId, isDM: _pendingTransfer.isDM });
+        if (typeof closeModal === 'function') closeModal('player-transfer-item-modal');
+        _pendingTransfer = null;
+        var qtyRow = document.getElementById('player-transfer-qty-row');
+        if (qtyRow) qtyRow.style.display = '';
+        return;
+    }
+    const user = getCurrentUser();
+    if (!user || !isPlayer()) return;
     if (toId === user.id) {
         showToast('No puedes enviarte a ti mismo', true);
         return;
@@ -6611,7 +6726,10 @@ document.querySelectorAll('.nav-tab').forEach(tab => {
         if (tab.dataset.tab === 'player-home' && typeof loadMiCasaContent === 'function') {
             loadMiCasaContent();
         }
-        
+        // Si se hace clic en Inventario, cargar items especiales del jugador
+        if ((tab.dataset.tab === 'player-inventario' || tab.dataset.tab === 'player-items-especiales') && typeof loadPlayerSpecialItemsForCurrentUser === 'function') {
+            loadPlayerSpecialItemsForCurrentUser();
+        }
         // Si se hace clic en el tab de notificaciones del DM, cargar destinatarios y historial
         if (tab.dataset.tab === 'notifications') {
             if (typeof loadNotificationRecipients === 'function') loadNotificationRecipients();

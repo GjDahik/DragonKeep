@@ -1,5 +1,5 @@
-/* Service Worker - La versión (CACHE_NAME) se actualiza con: node update-version.js 6 */
-const CACHE_NAME = 'dragonkeep-v7';
+/* Service Worker - La versión (CACHE_NAME) se actualiza con: node update-version.js 1.0.9 */
+const CACHE_NAME = 'dragonkeep-v1.0.9';
 
 /** Base path del SW (ej. /dm-dashboard-modular/) para que funcione bajo subpath */
 function getBase() {

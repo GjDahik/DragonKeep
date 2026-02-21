@@ -16,7 +16,7 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <!-- Al desplegar: ejecutar "node update-version.js 6" (sube el número) para que los usuarios vean los cambios sin hard reload -->
-    <link rel="stylesheet" href="css/styles.css?v=7">
+    <link rel="stylesheet" href="css/styles.css?v=1.0.9">
 </head>
 <body>
     <div class="container" id="main-container" style="display: none;">
@@ -459,6 +459,10 @@
                     <label for="player-sell-qty" style="color:#a89878; font-size:0.9em;">Cantidad</label>
                     <input type="number" id="player-sell-qty" min="1" value="1" aria-label="Cantidad a vender" style="width:100%; max-width:120px; padding:8px 12px; background:rgba(0,0,0,0.4); border:1px solid #4a3c31; border-radius:6px; color:#d4c4a8;">
                 </div>
+                <div class="form-group" id="player-sell-special-item-row" style="display:none; margin-top:12px;">
+                    <label for="player-sell-special-valor" style="color:#a89878; font-size:0.9em;">Valor del item (GP)</label>
+                    <input type="number" id="player-sell-special-valor" min="0" value="0" placeholder="0" style="width:100%; max-width:120px; padding:8px 12px; background:rgba(0,0,0,0.4); border:1px solid #4a3c31; border-radius:6px; color:#d4c4a8;">
+                </div>
                 <p class="player-use-confirm-hint" id="player-sell-confirm-hint">75% del valor de compra.</p>
             </div>
             <div class="modal-footer player-use-confirm-footer">
@@ -477,7 +481,7 @@
             </div>
             <div class="modal-body player-use-confirm-body">
                 <p class="player-use-confirm-message" id="player-transfer-item-name">—</p>
-                <div class="form-group" style="margin-top:12px;">
+                <div class="form-group" id="player-transfer-qty-row" style="margin-top:12px;">
                     <label for="player-transfer-qty" style="color:#a89878; font-size:0.9em;">Cantidad</label>
                     <input type="number" id="player-transfer-qty" min="1" value="1" style="width:100%; padding:8px 12px; background:rgba(0,0,0,0.4); border:1px solid #4a3c31; border-radius:6px; color:#d4c4a8;">
                 </div>
@@ -1729,6 +1733,94 @@
             <div class="modal-footer" style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
                 <button type="button" class="btn btn-danger btn-small" onclick="clearPlayerInventory()" title="Vaciar todo el inventario de este jugador">🗑️ Borrar todo el inventario</button>
                 <button class="btn btn-secondary" onclick="closeModal('player-inventory-modal')">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Items especiales de un jugador (DM) -->
+    <div class="modal-overlay" id="special-items-modal">
+        <div class="modal" style="max-width: 640px;">
+            <div class="modal-header">
+                <h3 id="dm-special-items-title">⭐ Items especiales</h3>
+                <button class="modal-close" onclick="closeModal('special-items-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="dm-special-items-player-id">
+                <p style="color:#8b7355; margin-bottom:12px;">Objetos con imagen (link Imgur). El jugador los ve en su pestaña Inventario.</p>
+                <p id="dm-special-items-total-value" class="player-inventory-total-value" style="margin-bottom:12px; color:#a89878; font-size:1em;">Valor total items especiales: <strong style="color:#f1c40f;">0 GP</strong></p>
+                <div id="dm-special-items-list" class="player-special-items-container"></div>
+                <button type="button" class="btn btn-small" onclick="addSpecialItemFromDMModal()" style="margin-top:12px;">➕ Añadir item especial</button>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('special-items-modal')">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Añadir/Editar item especial (nombre + link Imgur) -->
+    <div class="modal-overlay" id="special-item-form-modal">
+        <div class="modal special-item-form-modal-wide" style="max-width: 560px;">
+            <div class="modal-header">
+                <h3 id="special-item-modal-title">✨ Añadir item especial</h3>
+                <button class="modal-close" onclick="closeModal('special-item-form-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="special-item-player-id">
+                <input type="hidden" id="special-item-id">
+                <div class="form-group">
+                    <label>Nombre</label>
+                    <input type="text" id="special-item-name" placeholder="Ej: Espada del amanecer">
+                </div>
+                <div class="form-group">
+                    <label>Imagen (link de Imgur)</label>
+                    <input type="url" id="special-item-image-url" placeholder="https://i.imgur.com/xxxxx.png">
+                </div>
+                <div class="form-group">
+                    <label>Precio (GP)</label>
+                    <input type="number" id="special-item-precio" placeholder="Ej: 500" min="0" step="1">
+                </div>
+                <div class="form-group">
+                    <label>Rareza</label>
+                    <select id="special-item-rareza" style="width: 100%; padding: 10px 12px; background: rgba(0,0,0,0.4); border: 1px solid #4a3c31; border-radius: 6px; color: #d4c4a8;">
+                        <option value="común">Común</option>
+                        <option value="inusual">Inusual</option>
+                        <option value="rara">Rara</option>
+                        <option value="legendaria">Legendaria</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Resumen (se muestra en la tarjeta)</label>
+                    <input type="text" id="special-item-resumen" placeholder="Ej: Objeto Muy Raro – Maldito. Cristal que late con un ritmo constante." maxlength="300">
+                </div>
+                <div class="form-group">
+                    <label>Descripción (puede ser muy larga: poderes, maldiciones, etc.)</label>
+                    <textarea id="special-item-description" rows="18" class="special-item-description-textarea" placeholder="Pega aquí el texto completo del item. Puedes usar saltos de línea."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('special-item-form-modal')">Cancelar</button>
+                <button type="button" class="btn" onclick="saveSpecialItem()">💾 Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ver descripción completa de un item especial -->
+    <div class="modal-overlay" id="special-item-description-modal">
+        <div class="modal" style="max-width: 620px;">
+            <div class="modal-header">
+                <h3 id="special-item-description-title" class="special-item-description-title">⭐ Descripción</h3>
+                <button class="modal-close" onclick="closeModal('special-item-description-modal')">&times;</button>
+            </div>
+            <div class="modal-body special-item-description-body">
+                <div id="special-item-description-resumen-wrap" class="special-item-description-resumen-wrap" style="display: none;">
+                    <div class="special-item-description-resumen-label">Resumen</div>
+                    <div id="special-item-description-resumen" class="special-item-description-resumen"></div>
+                </div>
+                <div id="special-item-description-desc-label" class="special-item-description-desc-label" style="display: none;">Descripción</div>
+                <div id="special-item-description-content" class="special-item-description-content"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('special-item-description-modal')">Cerrar</button>
             </div>
         </div>
     </div>
@@ -3163,30 +3255,32 @@
                 <div class="metal-plaque-subtitle" id="footer-tagline">Caos a la orden del dia</div>
             </div>
         </div>
+        <div class="app-version">v1.0.9</div>
     </footer>
 
     <!-- Firebase (Auth anónimo + sessions para reglas; config en firebase-config.js) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js?v=7"></script>
+    <script src="js/firebase-config.js?v=1.0.9"></script>
     
     <!-- SheetJS para soporte Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <!-- App Scripts (misma ?v= que el CSS; al desplegar subir versión) -->
-    <script src="js/auth.js?v=7"></script>
-    <script src="js/firestore-subscriptions.js?v=7"></script>
-    <script src="js/app.js?v=7"></script>
-    <script src="js/player-map-touch.js?v=7"></script>
-    <script src="js/players.js?v=7"></script>
-    <script src="js/cities.js?v=7"></script>
-    <script src="js/traveling-shops.js?v=7"></script>
-    <script src="js/casino.js?v=7"></script>
-    <script src="js/inventory.js?v=7"></script>
-    <script src="js/transactions.js?v=7"></script>
-    <script src="js/notifications.js?v=7"></script>
-    <script src="js/automation.js?v=7"></script>
-    <script src="js/missions.js?v=7"></script>
+    <script src="js/auth.js?v=1.0.9"></script>
+    <script src="js/firestore-subscriptions.js?v=1.0.9"></script>
+    <script src="js/app.js?v=1.0.9"></script>
+    <script src="js/special-items.js?v=1.0.9"></script>
+    <script src="js/player-map-touch.js?v=1.0.9"></script>
+    <script src="js/players.js?v=1.0.9"></script>
+    <script src="js/cities.js?v=1.0.9"></script>
+    <script src="js/traveling-shops.js?v=1.0.9"></script>
+    <script src="js/casino.js?v=1.0.9"></script>
+    <script src="js/inventory.js?v=1.0.9"></script>
+    <script src="js/transactions.js?v=1.0.9"></script>
+    <script src="js/notifications.js?v=1.0.9"></script>
+    <script src="js/automation.js?v=1.0.9"></script>
+    <script src="js/missions.js?v=1.0.9"></script>
 </body>
 </html>

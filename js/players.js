@@ -57,6 +57,7 @@ function renderPlayers() {
                     <button class="btn btn-small" onclick="openBancoModal('${p.id}', '${p.nombre}', ${bancoBalance})" style="background:linear-gradient(180deg, #5a8a5a 0%, #4a7a4a 100%);">🏦</button>
                     <button class="btn btn-small" onclick="openCartasDestinoModal('${p.id}', '${nombreEsc}')" style="background:linear-gradient(180deg, #6b4a6b 0%, #4a3a4a 100%);" title="Cartas del destino">🃏</button>
                     <button class="btn btn-small" onclick="openPlayerCasaModal('${p.id}', '${nombreEsc}')" style="background:linear-gradient(180deg, #8b5a2b 0%, #6b4a1b 100%);">🏠</button>
+                    <button class="btn btn-small" onclick="typeof openPlayerSpecialItemsModal==='function'&&openPlayerSpecialItemsModal('${p.id}')" title="Items especiales">⭐</button>
                     <button class="btn btn-small btn-secondary" onclick="editPlayer('${p.id}')">✏️</button>
                 </div>
             </div>`;

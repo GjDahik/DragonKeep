@@ -1,9 +1,9 @@
 /**
  * Actualiza la versión de caché en todo el proyecto.
  * Uso:
- *   node update-version.js          → usa el número en version.txt y actualiza todos los archivos
- *   node update-version.js 6        → escribe 6 en version.txt y actualiza todos los archivos
- * Antes de hacer deploy a GitHub Pages, ejecuta esto (con o sin número) para que los usuarios vean los cambios sin hard reload.
+ *   node update-version.js           → usa la versión en version.txt (ej. 1.0.8)
+ *   node update-version.js 1.0.9    → escribe 1.0.9 en version.txt y actualiza todos los archivos
+ * Antes de hacer deploy, ejecuta esto para que los usuarios vean los cambios sin hard reload.
  */
 
 const fs = require('fs');
@@ -20,15 +20,16 @@ const FILES = [
 
 function getVersion() {
   if (!fs.existsSync(VERSION_FILE)) {
-    console.error('No existe version.txt. Créalo con un número (ej. 5) o ejecuta: node update-version.js 5');
+    console.error('No existe version.txt. Créalo con una versión (ej. 1.0.8) o ejecuta: node update-version.js 1.0.8');
     process.exit(1);
   }
   return fs.readFileSync(VERSION_FILE, 'utf8').trim();
 }
 
 function setVersion(v) {
-  fs.writeFileSync(VERSION_FILE, String(v) + '\n', 'utf8');
-  console.log('Versión escrita en version.txt:', v);
+  var ver = String(v).trim();
+  fs.writeFileSync(VERSION_FILE, ver + '\n', 'utf8');
+  console.log('Versión escrita en version.txt:', ver);
 }
 
 function updateFile(filePath, version) {
@@ -40,9 +41,10 @@ function updateFile(filePath, version) {
   const base = path.basename(filePath);
 
   if (base === 'sw.js') {
-    content = content.replace(/dragonkeep-v\d+/, 'dragonkeep-v' + version);
+    content = content.replace(/dragonkeep-v[\d.]+/, 'dragonkeep-v' + version);
   } else {
-    content = content.replace(/\?v=\d+/g, '?v=' + version);
+    content = content.replace(/\?v=[\d.]+/g, '?v=' + version);
+    content = content.replace(/(<div class="app-version"[^>]*>)v[\d.]+(<\/div>)/, '$1v' + version + '$2');
   }
 
   fs.writeFileSync(filePath, content, 'utf8');
@@ -53,9 +55,9 @@ const newVersionArg = process.argv[2];
 let version;
 
 if (newVersionArg !== undefined && newVersionArg !== '') {
-  version = newVersionArg.replace(/\D/g, '') || newVersionArg;
+  version = String(newVersionArg).trim();
   if (!version) {
-    console.error('Usa un número de versión, ej: node update-version.js 6');
+    console.error('Indica una versión, ej: node update-version.js 1.0.9');
     process.exit(1);
   }
   setVersion(version);
